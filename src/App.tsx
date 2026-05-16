@@ -1,168 +1,214 @@
 import {
   ArrowRight,
-  BookOpenCheck,
-  CalendarClock,
-  Check,
-  ChevronRight,
+  BadgeCheck,
+  BriefcaseBusiness,
   CircleDollarSign,
-  Compass,
   GraduationCap,
-  HeartHandshake,
-  MapPin,
-  MessageCircleHeart,
+  Handshake,
+  Heart,
+  Home,
+  Menu,
+  Play,
+  Search,
+  ShieldCheck,
   Sparkles,
-  UsersRound,
+  Star,
+  UserCircle,
+  Zap,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const categories = [
-  { label: "Hackathons", color: "bg-blueberry text-white", icon: Compass },
-  { label: "Scholarships", color: "bg-sunshine text-ink", icon: CircleDollarSign },
-  { label: "Mentorship", color: "bg-mint text-white", icon: HeartHandshake },
-  { label: "Internships", color: "bg-coral text-white", icon: GraduationCap },
-];
+const navItems = ["How it works", "For you", "Categories", "About"];
 
-const opportunities = [
+const categoryCards = [
   {
-    title: "Beginner AI Hack Night",
-    org: "Code Collective",
-    meta: "Remote • Closes Friday",
-    score: "96%",
-    tags: ["Beginner-friendly", "Free", "Remote"],
-    accent: "border-blueberry/25 bg-blueberry/5",
+    title: "Hackathons",
+    copy: "Build, learn, and launch together.",
+    icon: Zap,
+    color: "text-blueberry",
+    bg: "bg-blueberry/10",
+    ring: "ring-blueberry/15",
   },
   {
-    title: "Women in Product Mentors",
-    org: "Product Bridge",
-    meta: "8 mi away • Rolling",
-    score: "91%",
-    tags: ["Mentorship", "No experience required"],
-    accent: "border-mint/25 bg-mint/5",
+    title: "Scholarships",
+    copy: "Funding to fuel your future.",
+    icon: GraduationCap,
+    color: "text-mint",
+    bg: "bg-mint/10",
+    ring: "ring-mint/15",
   },
   {
-    title: "First-Gen Tech Grant",
-    org: "Open Campus Fund",
-    meta: "Online • 12 days left",
-    score: "88%",
-    tags: ["Funding", "Career prep"],
-    accent: "border-sunshine/30 bg-sunshine/10",
+    title: "Mentorship",
+    copy: "Guidance from people who have been there.",
+    icon: Handshake,
+    color: "text-sunshine",
+    bg: "bg-sunshine/20",
+    ring: "ring-sunshine/25",
+  },
+  {
+    title: "Internships",
+    copy: "Real experience. Real impact.",
+    icon: BriefcaseBusiness,
+    color: "text-coral",
+    bg: "bg-coral/10",
+    ring: "ring-coral/15",
   },
 ];
 
-const supportTags = [
-  "Free",
-  "Remote",
-  "Beginner-friendly",
-  "Mentorship",
-  "No experience required",
-  "Travel support",
+const opportunityCards = [
+  {
+    type: "Hackathon",
+    title: "Build for Good Hack",
+    meta: "Online - Aug 24-25",
+    tags: ["Beginner-friendly", "Free", "Remote", "Mentorship"],
+    match: "95% match",
+    image: "from-blueberry/80 via-sky-300 to-sunshine",
+  },
+  {
+    type: "Scholarship",
+    title: "Jane Street Women in Tech",
+    meta: "Apply by Sep 10",
+    tags: ["Women in tech", "Funding", "Undergrad"],
+    match: "92% match",
+    image: "from-coral/80 via-orange-200 to-blueberry/70",
+  },
 ];
 
-const whyItems = [
-  "Matched to your goals",
-  "Respects your range",
-  "Explains every recommendation",
+const benefits = [
+  {
+    title: "Personalized daily stack",
+    copy: "We match opportunities to your goals, needs, and interests.",
+    icon: BadgeCheck,
+  },
+  {
+    title: "Save time, stay focused",
+    copy: "Only the most relevant opportunities, updated daily.",
+    icon: Heart,
+  },
+  {
+    title: "Built for every path",
+    copy: "For underrepresented and nontraditional tech learners.",
+    icon: ShieldCheck,
+  },
 ];
 
 function App() {
   return (
-    <main className="min-h-screen overflow-hidden bg-paper text-ink">
-      <div className="absolute inset-x-0 top-0 -z-10 h-[780px] bg-[radial-gradient(circle_at_20%_10%,rgba(244,182,63,0.24),transparent_30%),radial-gradient(circle_at_82%_8%,rgba(59,111,245,0.18),transparent_28%),linear-gradient(180deg,#f8fbff_0%,#fcfbf7_68%)]" />
-      <Header />
-      <section className="mx-auto grid w-full max-w-7xl gap-12 px-5 pb-20 pt-10 sm:px-8 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:px-10 lg:pb-28 lg:pt-14">
-        <HeroCopy />
-        <HeroVisual />
+    <main className="min-h-screen overflow-hidden bg-[#f4f8ff] px-3 py-3 text-ink sm:px-4 sm:py-4">
+      <section className="mx-auto max-w-[1420px] overflow-hidden rounded-[1.35rem] border border-ink/10 bg-white shadow-[0_22px_80px_rgba(61,85,128,0.14)]">
+        <Header />
+        <div className="grid gap-8 px-5 pb-10 pt-5 sm:px-8 lg:grid-cols-[1fr_0.9fr] lg:gap-6 lg:px-14 lg:pb-12 lg:pt-10">
+          <HeroCopy />
+          <HeroVisual />
+        </div>
+        <Categories />
+        <BenefitStrip />
       </section>
-      <ProofStrip />
-      <section className="mx-auto grid max-w-7xl gap-7 px-5 py-16 sm:px-8 lg:grid-cols-3 lg:px-10">
-        <FeatureCard
-          icon={BookOpenCheck}
-          title="A stack, not a search chore"
-          copy="Fora starts with 5-10 high-fit opportunities, then lets you explore more when you have the time."
-        />
-        <FeatureCard
-          icon={MessageCircleHeart}
-          title="Private preferences"
-          copy="Users choose what they want surfaced. The app explains matches without turning identity into a public label."
-        />
-        <FeatureCard
-          icon={CalendarClock}
-          title="Built around deadlines"
-          copy="Urgent opportunities get a boost only when they are still relevant to goals, access needs, and location."
-        />
-      </section>
+      <p className="mx-auto mt-6 max-w-7xl text-center text-base font-semibold text-blueberry sm:text-lg">
+        5 minutes today. More opportunities tomorrow.
+      </p>
     </main>
   );
 }
 
 function Header() {
   return (
-    <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
-      <a className="flex items-center gap-3" href="/" aria-label="Fora home">
-        <span className="grid h-10 w-10 place-items-center rounded-2xl bg-white shadow-sm ring-1 ring-ink/5">
-          <Sparkles className="h-5 w-5 text-blueberry" aria-hidden="true" />
-        </span>
-        <span className="text-xl font-black tracking-tight">Fora</span>
+    <header className="flex items-center justify-between px-5 py-5 sm:px-8 lg:px-14">
+      <a className="text-2xl font-black tracking-normal text-blueberry" href="/">
+        Fora
       </a>
-      <nav className="hidden items-center gap-7 text-sm font-semibold text-ink/65 md:flex">
-        <a className="transition hover:text-ink" href="#stack">
-          Daily stack
-        </a>
-        <a className="transition hover:text-ink" href="#matching">
-          Matching
-        </a>
-        <a className="transition hover:text-ink" href="#saved">
-          Saved
-        </a>
+      <nav className="hidden items-center gap-9 text-sm font-bold text-ink/72 lg:flex">
+        {navItems.map((item) => (
+          <a className="transition hover:text-blueberry" href="/" key={item}>
+            {item}
+          </a>
+        ))}
       </nav>
-      <Button variant="secondary" size="sm">
-        Sign in
-      </Button>
+      <div className="hidden lg:block">
+        <Button className="h-12 px-7">Build my stack</Button>
+      </div>
+      <div className="flex items-center gap-3 lg:hidden">
+        <button
+          aria-label="Open navigation"
+          className="grid h-10 w-10 place-items-center rounded-full bg-cloud text-ink"
+        >
+          <Menu className="h-5 w-5" aria-hidden="true" />
+        </button>
+        <button
+          aria-label="Open profile"
+          className="grid h-10 w-10 place-items-center rounded-full bg-ink text-white"
+        >
+          <UserCircle className="h-5 w-5" aria-hidden="true" />
+        </button>
+      </div>
     </header>
   );
 }
 
 function HeroCopy() {
   return (
-    <div className="mx-auto max-w-2xl text-center lg:mx-0 lg:text-left">
-      <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-blueberry shadow-sm ring-1 ring-blueberry/10">
-        <span className="h-2 w-2 rounded-full bg-mint" />
-        Built for 5 minutes a day
-      </div>
-      <h1 className="text-balance text-5xl font-black leading-[0.95] tracking-normal text-ink sm:text-6xl lg:text-7xl">
-        Find your next tech opening in 5 minutes.
+    <div className="flex min-h-[520px] flex-col justify-center lg:pb-4">
+      <h1 className="max-w-[680px] text-balance text-[3.15rem] font-black leading-[0.96] tracking-normal text-ink sm:text-6xl lg:text-[4.9rem]">
+        Find your next tech opening{" "}
+        <span className="text-blueberry">in 5 minutes.</span>
       </h1>
-      <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-ink/68 lg:mx-0">
+      <p className="mt-7 max-w-[560px] text-lg font-medium leading-8 text-ink/70">
         A daily stack of hackathons, mentors, scholarships, and communities
-        matched to your goals, access needs, and location.
+        matched to your goals.
       </p>
-      <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
+      <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
         <Button size="lg" className="w-full sm:w-auto">
           Build my stack
           <ArrowRight className="h-5 w-5" aria-hidden="true" />
         </Button>
-        <Button variant="secondary" size="lg" className="w-full sm:w-auto">
-          View demo
-        </Button>
+        <button className="inline-flex h-14 items-center justify-center gap-2 rounded-full px-5 text-sm font-black text-blueberry transition hover:bg-blueberry/5">
+          See how it works
+          <span className="grid h-7 w-7 place-items-center rounded-full border border-blueberry/30">
+            <Play className="h-3.5 w-3.5 fill-blueberry" aria-hidden="true" />
+          </span>
+        </button>
       </div>
-      <div className="mt-8 flex flex-wrap justify-center gap-2 lg:justify-start">
-        {categories.map((category) => {
-          const Icon = category.icon;
-          return (
-            <span
-              className={cn(
-                "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold shadow-sm",
-                category.color,
-              )}
-              key={category.label}
-            >
-              <Icon className="h-4 w-4" aria-hidden="true" />
-              {category.label}
-            </span>
-          );
-        })}
+      <SocialProof />
+    </div>
+  );
+}
+
+function SocialProof() {
+  return (
+    <div className="mb-8 mt-10 flex flex-wrap items-center gap-4 lg:mb-0">
+      <div className="flex -space-x-2">
+        {["A", "N", "S", "M"].map((initial, index) => (
+          <span
+            className={cn(
+              "grid h-9 w-9 place-items-center rounded-full border-2 border-white text-xs font-black text-white shadow-sm",
+              [
+                "bg-blueberry",
+                "bg-mint",
+                "bg-sunshine text-ink",
+                "bg-coral",
+              ][index],
+            )}
+            key={initial}
+          >
+            {initial}
+          </span>
+        ))}
+      </div>
+      <div>
+        <div className="flex gap-0.5 text-sunshine">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <Star
+              className="h-4 w-4 fill-current"
+              aria-hidden="true"
+              key={index}
+            />
+          ))}
+        </div>
+        <p className="mt-1 text-sm font-semibold text-ink/58">
+          Loved by learners like you
+        </p>
       </div>
     </div>
   );
@@ -170,172 +216,188 @@ function HeroCopy() {
 
 function HeroVisual() {
   return (
+    <div className="relative min-h-[560px] lg:min-h-[640px]" aria-label="Fora app preview">
+      <div className="absolute right-[-12%] top-[19%] h-64 w-64 rounded-full bg-sunshine lg:h-80 lg:w-80" />
+      <div className="absolute bottom-[15%] right-[18%] h-52 w-52 rounded-full bg-mint/75 lg:h-64 lg:w-64" />
+      <div className="absolute bottom-[15%] left-[16%] h-64 w-64 rounded-full bg-blueberry lg:h-80 lg:w-80" />
+      <div className="absolute left-[3%] top-[32%] hidden h-32 w-32 bg-[radial-gradient(#f4b63f_1.5px,transparent_1.5px)] [background-size:12px_12px] lg:block" />
+      <PhoneMockup className="absolute left-1/2 top-1/2 w-[min(72vw,320px)] -translate-x-1/2 -translate-y-1/2 lg:w-[330px]" />
+    </div>
+  );
+}
+
+function PhoneMockup({ className }: { className?: string }) {
+  return (
     <div
-      id="stack"
-      className="relative mx-auto w-full max-w-[520px] lg:mr-0"
-      aria-label="Fora app preview"
+      className={cn(
+        "rounded-[2.65rem] bg-[#111827] p-2.5 shadow-[0_25px_70px_rgba(23,32,51,0.32)]",
+        className,
+      )}
     >
-      <div className="absolute -left-4 top-16 hidden w-36 rotate-[-8deg] rounded-[2rem] bg-white p-3 shadow-card ring-1 ring-ink/5 sm:block">
-        <div className="rounded-[1.35rem] bg-cloud p-3">
-          <UsersRound className="h-6 w-6 text-mint" aria-hidden="true" />
-          <p className="mt-3 text-sm font-black leading-tight">
-            2 friends saved this
-          </p>
+      <div className="relative overflow-hidden rounded-[2.05rem] bg-white">
+        <div className="absolute left-1/2 top-2 h-6 w-24 -translate-x-1/2 rounded-full bg-[#111827]" />
+        <div className="flex items-center justify-between px-5 pb-3 pt-9">
+          <div>
+            <p className="text-xs font-black text-ink">Good morning, Alex</p>
+            <p className="text-[11px] font-semibold text-ink/55">
+              Here is your stack for today
+            </p>
+          </div>
+          <span className="grid h-7 w-7 place-items-center rounded-full bg-cloud">
+            <UserCircle className="h-4 w-4 text-ink/70" aria-hidden="true" />
+          </span>
         </div>
-      </div>
-      <div className="absolute -right-3 bottom-20 hidden w-40 rotate-[7deg] rounded-[2rem] bg-white p-3 shadow-card ring-1 ring-ink/5 sm:block">
-        <div className="rounded-[1.35rem] bg-sunshine/20 p-3">
-          <MapPin className="h-6 w-6 text-coral" aria-hidden="true" />
-          <p className="mt-3 text-sm font-black leading-tight">
-            8 miles away
-          </p>
+        <div className="space-y-3 px-4 pb-4">
+          {opportunityCards.map((opportunity) => (
+            <OpportunityCard opportunity={opportunity} key={opportunity.title} />
+          ))}
         </div>
-      </div>
-      <div className="rounded-[2.5rem] bg-ink p-3 shadow-soft">
-        <div className="overflow-hidden rounded-[2rem] bg-[#f7f9fd]">
-          <div className="flex items-center justify-between border-b border-ink/5 bg-white px-5 py-4">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-ink/35">
-                Today
-              </p>
-              <p className="text-lg font-black">Your stack</p>
-            </div>
-            <span className="rounded-full bg-blueberry px-3 py-1 text-xs font-black text-white">
-              7 picks
-            </span>
-          </div>
-          <div className="space-y-4 p-4">
-            {opportunities.map((opportunity, index) => (
-              <OpportunityCard
-                index={index}
-                key={opportunity.title}
-                opportunity={opportunity}
-              />
-            ))}
-          </div>
-          <div className="bg-white px-5 py-4">
-            <div className="grid grid-cols-3 gap-2">
-              <button className="rounded-2xl bg-cloud py-3 text-sm font-black text-ink/60">
-                Pass
-              </button>
-              <button className="rounded-2xl bg-blueberry py-3 text-sm font-black text-white">
-                Save
-              </button>
-              <button className="rounded-2xl bg-ink py-3 text-sm font-black text-white">
-                Apply
-              </button>
-            </div>
-          </div>
+        <div className="grid grid-cols-4 border-t border-ink/8 bg-white px-5 py-3 text-[10px] font-bold text-ink/50">
+          <PhoneNav icon={Home} label="Home" active />
+          <PhoneNav icon={Search} label="Explore" />
+          <PhoneNav icon={Heart} label="Saved" />
+          <PhoneNav icon={UserCircle} label="Profile" />
         </div>
       </div>
     </div>
   );
 }
 
-type Opportunity = (typeof opportunities)[number];
+type Opportunity = (typeof opportunityCards)[number];
 
-function OpportunityCard({
-  opportunity,
-  index,
-}: {
-  opportunity: Opportunity;
-  index: number;
-}) {
+function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
   return (
-    <article
-      className={cn(
-        "rounded-[1.55rem] border p-4 shadow-sm transition-transform duration-300 hover:-translate-y-1",
-        opportunity.accent,
-      )}
-      style={{ transform: `translateY(${index * 2}px)` }}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-xs font-bold text-ink/48">{opportunity.org}</p>
-          <h2 className="mt-1 text-xl font-black leading-tight">
+    <article className="rounded-2xl border border-ink/8 bg-white p-3 shadow-[0_10px_24px_rgba(40,56,90,0.10)]">
+      <div className="flex gap-3">
+        <div className="min-w-0 flex-1">
+          <span className="rounded-md bg-blueberry px-2 py-1 text-[10px] font-black text-white">
+            {opportunity.type}
+          </span>
+          <h2 className="mt-2 text-sm font-black leading-tight text-ink">
             {opportunity.title}
           </h2>
-          <p className="mt-2 text-sm font-semibold text-ink/56">
+          <p className="mt-1 text-[11px] font-bold text-ink/55">
             {opportunity.meta}
           </p>
         </div>
-        <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white shadow-sm">
-          <span className="text-sm font-black text-blueberry">
-            {opportunity.score}
-          </span>
+        <div
+          className={cn(
+            "h-16 w-16 shrink-0 rounded-xl bg-gradient-to-br",
+            opportunity.image,
+          )}
+        >
+          <div className="h-full w-full rounded-xl bg-[radial-gradient(circle_at_65%_30%,rgba(255,255,255,0.85),transparent_22%),radial-gradient(circle_at_35%_70%,rgba(255,255,255,0.55),transparent_18%)]" />
         </div>
       </div>
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap gap-1.5">
         {opportunity.tags.map((tag) => (
           <span
-            className="rounded-full bg-white px-3 py-1.5 text-xs font-black text-ink/68 shadow-sm"
+            className="rounded-md bg-mint/14 px-2 py-1 text-[10px] font-black text-mint"
             key={tag}
           >
             {tag}
           </span>
         ))}
       </div>
-      <div className="mt-4 flex items-center justify-between rounded-2xl bg-white px-3 py-2">
-        <span className="text-xs font-bold text-ink/55">Why this?</span>
-        <span className="inline-flex items-center gap-1 text-xs font-black text-mint">
-          Matched
-          <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+      <div className="mt-3 flex items-center justify-between border-t border-ink/6 pt-2">
+        <p className="text-[10px] font-bold text-ink/50">
+          Why this matches you
+        </p>
+        <span className="rounded-full border border-ink/10 px-2 py-1 text-[10px] font-black">
+          {opportunity.match}
         </span>
       </div>
     </article>
   );
 }
 
-function ProofStrip() {
+function PhoneNav({
+  icon: Icon,
+  label,
+  active,
+}: {
+  icon: typeof Home;
+  label: string;
+  active?: boolean;
+}) {
   return (
-    <section
-      id="matching"
-      className="border-y border-ink/5 bg-white/72 backdrop-blur"
+    <div
+      className={cn(
+        "flex flex-col items-center gap-1",
+        active && "text-blueberry",
+      )}
     >
-      <div className="mx-auto grid max-w-7xl gap-5 px-5 py-8 sm:px-8 md:grid-cols-3 lg:px-10">
-        {whyItems.map((item) => (
-          <div className="flex items-center gap-3" key={item}>
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-mint/10 text-mint">
-              <Check className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <p className="font-black">{item}</p>
-          </div>
-        ))}
+      <Icon className="h-4 w-4" aria-hidden="true" />
+      <span>{label}</span>
+    </div>
+  );
+}
+
+function Categories() {
+  return (
+    <section id="categories" className="px-5 pb-12 sm:px-8 lg:px-14">
+      <div className="mb-5">
+        <h2 className="text-2xl font-black sm:text-3xl">
+          Explore what's possible
+        </h2>
+        <p className="mt-1 text-sm font-medium text-ink/58">
+          Opportunities designed for you.
+        </p>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {categoryCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <article
+              className={cn(
+                "rounded-[1.4rem] bg-white p-6 shadow-sm ring-1 transition duration-300 hover:-translate-y-1 hover:shadow-card",
+                card.ring,
+              )}
+              key={card.title}
+            >
+              <span
+                className={cn(
+                  "grid h-14 w-14 place-items-center rounded-full",
+                  card.bg,
+                  card.color,
+                )}
+              >
+                <Icon className="h-7 w-7" aria-hidden="true" />
+              </span>
+              <h3 className="mt-6 text-xl font-black">{card.title}</h3>
+              <p className="mt-2 text-sm font-medium leading-6 text-ink/62">
+                {card.copy}
+              </p>
+            </article>
+          );
+        })}
       </div>
     </section>
   );
 }
 
-function FeatureCard({
-  icon: Icon,
-  title,
-  copy,
-}: {
-  icon: typeof BookOpenCheck;
-  title: string;
-  copy: string;
-}) {
+function BenefitStrip() {
   return (
-    <article
-      id={title.includes("stack") ? "saved" : undefined}
-      className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-ink/5"
-    >
-      <div className="mb-8 flex flex-wrap gap-2">
-        {supportTags.slice(0, 3).map((tag) => (
-          <span
-            className="rounded-full bg-cloud px-3 py-1.5 text-xs font-black text-ink/58"
-            key={tag}
-          >
-            {tag}
-          </span>
-        ))}
+    <section className="bg-[#eef6ff] px-5 py-8 sm:px-8 lg:px-14">
+      <div className="grid gap-7 lg:grid-cols-3">
+        {benefits.map((benefit) => {
+          const Icon = benefit.icon;
+          return (
+            <article className="flex gap-4" key={benefit.title}>
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-blueberry shadow-sm">
+                <Icon className="h-6 w-6" aria-hidden="true" />
+              </span>
+              <div>
+                <h3 className="font-black">{benefit.title}</h3>
+                <p className="mt-1 max-w-sm text-sm font-medium leading-6 text-ink/62">
+                  {benefit.copy}
+                </p>
+              </div>
+            </article>
+          );
+        })}
       </div>
-      <div className="grid h-12 w-12 place-items-center rounded-2xl bg-blueberry/10 text-blueberry">
-        <Icon className="h-6 w-6" aria-hidden="true" />
-      </div>
-      <h3 className="mt-5 text-2xl font-black tracking-normal">{title}</h3>
-      <p className="mt-3 leading-7 text-ink/62">{copy}</p>
-    </article>
+    </section>
   );
 }
 
