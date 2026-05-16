@@ -1,14 +1,55 @@
-import { UserButton, useUser } from "@clerk/react";
+import { UserButton, useAuth, useUser } from "@clerk/react";
 import { ArrowRight, CalendarDays, Heart, Share2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
+import type { ApiStackOpportunity } from "@/api/daily-stack";
+import { fetchDailyStack } from "@/api/daily-stack";
 import { Button } from "@/components/ui/button";
-import { dailyStackPreview } from "@/domain/opportunities";
 import { getMatchExplanationLabels } from "@/domain/match-explanations";
+import { dailyStackPreview } from "@/domain/opportunities";
 import { cn } from "@/lib/utils";
+
+type DisplayOpportunity = ApiStackOpportunity & {
+  imageClassName?: string;
+  timing: string;
+};
 
 export function DailyStackScreen() {
   const { user } = useUser();
+  const { getToken } = useAuth();
+  const [apiStack, setApiStack] = useState<DisplayOpportunity[] | null>(null);
+  const [stackError, setStackError] = useState<string | null>(null);
   const firstName = user?.firstName ?? "there";
+  const displayStack = apiStack ?? dailyStackPreview.map(toPreviewStackCard);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadDailyStack() {
+      try {
+        const token = await getToken();
+
+        if (!token) return;
+
+        const response = await fetchDailyStack(token);
+
+        if (!cancelled) {
+          setApiStack(response.stack.map(toApiStackCard));
+          setStackError(null);
+        }
+      } catch {
+        if (!cancelled) {
+          setStackError("Using preview matches until the Worker API is running.");
+        }
+      }
+    }
+
+    void loadDailyStack();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [getToken]);
 
   return (
     <main className="min-h-screen bg-[#f4f8ff] px-3 py-3 text-ink sm:px-4 sm:py-4">
@@ -34,18 +75,23 @@ export function DailyStackScreen() {
               Good morning, {firstName}.
             </h1>
             <p className="mt-4 text-base font-semibold leading-7 text-ink/62">
-              This is the signed-in product shell. Next we’ll connect this stack
-              to D1 and score it from your private opportunity preferences.
+              This stack reads from the Worker API when it is running, then
+              falls back to preview matches while local backend setup catches up.
             </p>
+            {stackError ? (
+              <p className="mt-4 rounded-xl bg-white px-4 py-3 text-sm font-bold text-ink/58">
+                {stackError}
+              </p>
+            ) : null}
             <div className="mt-8 rounded-2xl bg-white p-4 shadow-sm">
               <div className="flex items-center gap-3">
                 <span className="grid h-11 w-11 place-items-center rounded-full bg-sunshine/25 text-sunshine">
                   <CalendarDays className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <div>
-                  <p className="text-sm font-black">Today’s rhythm</p>
+                  <p className="text-sm font-black">Today&apos;s rhythm</p>
                   <p className="text-xs font-bold text-ink/50">
-                    2 matches ready
+                    {displayStack.length} matches ready
                   </p>
                 </div>
               </div>
@@ -53,11 +99,7 @@ export function DailyStackScreen() {
           </aside>
 
           <section className="space-y-4">
-            {dailyStackPreview.map((opportunity) => {
-              const labels = getMatchExplanationLabels(
-                opportunity.matchExplanationKeys,
-              );
-
+            {displayStack.map((opportunity) => {
               return (
                 <article
                   className="rounded-[1.4rem] border border-ink/8 bg-white p-5 shadow-sm"
@@ -67,7 +109,8 @@ export function DailyStackScreen() {
                     <div
                       className={cn(
                         "h-32 rounded-2xl bg-gradient-to-br sm:h-auto sm:w-36 sm:shrink-0",
-                        opportunity.imageClassName,
+                        opportunity.imageClassName ??
+                          "from-blueberry/80 via-sky-300 to-sunshine",
                       )}
                     >
                       <div className="h-full w-full rounded-2xl bg-[radial-gradient(circle_at_65%_30%,rgba(255,255,255,0.85),transparent_22%),radial-gradient(circle_at_35%_70%,rgba(255,255,255,0.55),transparent_18%)]" />
@@ -75,20 +118,20 @@ export function DailyStackScreen() {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <span className="rounded-md bg-blueberry px-2 py-1 text-xs font-black text-white">
-                          {opportunity.category}
+                          {titleCase(opportunity.category)}
                         </span>
                         <span className="rounded-full border border-ink/10 px-3 py-1 text-xs font-black">
-                          {opportunity.matchScore}% match
+                          {opportunity.fitScore}% match
                         </span>
                       </div>
                       <h2 className="mt-4 text-2xl font-black leading-tight">
                         {opportunity.title}
                       </h2>
                       <p className="mt-1 text-sm font-bold text-ink/55">
-                        {opportunity.organization} · {opportunity.timing}
+                        {opportunity.organization} - {opportunity.timing}
                       </p>
                       <div className="mt-4 flex flex-wrap gap-2">
-                        {labels.map((label) => (
+                        {opportunity.matchReasons.map((label) => (
                           <span
                             className="rounded-md bg-mint/14 px-2 py-1 text-xs font-black text-mint"
                             key={label}
@@ -121,4 +164,44 @@ export function DailyStackScreen() {
       </section>
     </main>
   );
+}
+
+function toPreviewStackCard(
+  opportunity: (typeof dailyStackPreview)[number],
+): DisplayOpportunity {
+  return {
+    id: opportunity.id,
+    title: opportunity.title,
+    organization: opportunity.organization,
+    description: "",
+    url: "#",
+    source: "preview",
+    category: opportunity.category,
+    locationText: null,
+    isRemote: opportunity.matchExplanationKeys.includes("remote"),
+    deadline: null,
+    cost: null,
+    eligibilityTags: [],
+    accessibilityTags: [],
+    topicTags: [],
+    experienceLevelTags: [],
+    imageUrl: null,
+    fitScore: opportunity.matchScore,
+    matchReasons: getMatchExplanationLabels(opportunity.matchExplanationKeys),
+    imageClassName: opportunity.imageClassName,
+    timing: opportunity.timing,
+  };
+}
+
+function toApiStackCard(opportunity: ApiStackOpportunity): DisplayOpportunity {
+  return {
+    ...opportunity,
+    timing: opportunity.deadline
+      ? `Starts ${new Date(opportunity.deadline).toLocaleDateString()}`
+      : opportunity.locationText ?? "Open opportunity",
+  };
+}
+
+function titleCase(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }

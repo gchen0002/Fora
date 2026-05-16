@@ -3,8 +3,10 @@ dist
 .wrangler
 .env
 .env.local
+.dev.vars
 .DS_Store
 *.log
 *.tsbuildinfo
+data/opportunities.scraped.json
 vite.config.js
 vite.config.d.ts
