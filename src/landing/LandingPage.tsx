@@ -1,5 +1,10 @@
-import { ArrowRight, Menu, Play, Star, UserCircle } from "lucide-react";
+import { Play, Star } from "lucide-react";
 
+import {
+  HeaderAuthActions,
+  HeroAuthActions,
+  MobileAuthActions,
+} from "@/auth/AuthActions";
 import { Button } from "@/components/ui/button";
 import { dailyStackPreview } from "@/domain/opportunities";
 import { categoryCards, benefits, navItems } from "@/landing/landing-content";
@@ -42,23 +47,8 @@ function Header() {
           </a>
         ))}
       </nav>
-      <div className="hidden lg:block">
-        <Button className="h-12 px-7">Build my stack</Button>
-      </div>
-      <div className="flex items-center gap-3 lg:hidden">
-        <button
-          aria-label="Open navigation"
-          className="grid h-10 w-10 place-items-center rounded-full bg-cloud text-ink"
-        >
-          <Menu className="h-5 w-5" aria-hidden="true" />
-        </button>
-        <button
-          aria-label="Open profile"
-          className="grid h-10 w-10 place-items-center rounded-full bg-ink text-white"
-        >
-          <UserCircle className="h-5 w-5" aria-hidden="true" />
-        </button>
-      </div>
+      <HeaderAuthActions />
+      <MobileAuthActions />
     </header>
   );
 }
@@ -75,10 +65,7 @@ function HeroCopy() {
         matched to your goals.
       </p>
       <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <Button size="lg" className="w-full sm:w-auto">
-          Build my stack
-          <ArrowRight className="h-5 w-5" aria-hidden="true" />
-        </Button>
+        <HeroAuthActions />
         <button className="inline-flex h-14 items-center justify-center gap-2 rounded-full px-5 text-sm font-black text-blueberry transition hover:bg-blueberry/5">
           See how it works
           <span className="grid h-7 w-7 place-items-center rounded-full border border-blueberry/30">
