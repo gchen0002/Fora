@@ -84,6 +84,153 @@ For the hackathon, the product should target Improving Access to the Tech Field 
 
 ## Product Features
 
+### Platform
+
+Fora should be built as a mobile-first web app/PWA, not a native iOS app.
+
+Reasoning:
+
+- The team is developing on Windows.
+- Judges can open a URL immediately.
+- Cloudflare Pages deployment is simple.
+- The product can still feel app-like through a phone-sized responsive interface.
+- Native iOS would add simulator, signing, device, and deployment complexity that does not help the MVP.
+
+The prototype should be designed primarily for a mobile viewport, while still working acceptably on desktop.
+
+Recommended demo setup:
+
+- deploy to Cloudflare Pages
+- open the URL in a desktop browser
+- present it in a phone-sized responsive layout or browser mobile mode
+- optionally let judges open the same URL on their phones
+
+### First-Time User Experience
+
+The first-time experience should be:
+
+```txt
+Landing page
+  -> Clerk login/sign-up
+  -> onboarding
+  -> daily stack
+  -> done for today
+  -> explore more / saved
+```
+
+#### Landing Page
+
+The landing page should be short and product-focused, not a long marketing site.
+
+Primary copy:
+
+> Fora
+>
+> 5 minutes a day to find tech opportunities you would have missed.
+
+Primary actions:
+
+- Get started
+- View demo, optional
+
+The first viewport should show a small preview of the daily stack so users immediately understand the product.
+
+#### Auth
+
+Use Clerk for login/sign-up.
+
+Recommended options:
+
+- Google sign-in
+- email sign-in
+
+After sign-up, redirect users to onboarding if they do not already have a profile.
+
+#### Onboarding
+
+Do not send new users directly to the feed. The daily stack needs preferences to feel personalized.
+
+Step 1:
+
+> What are you looking for?
+
+Options:
+
+- hackathons
+- scholarships/grants
+- internships/fellowships
+- mentorship
+- coding workshops
+- tech communities
+- resume/interview prep
+
+Step 2:
+
+> Show me opportunities designed for...
+
+Options:
+
+- women in tech
+- nonbinary people in tech
+- beginner coders
+- first-gen students
+- low-income students
+- LGBTQ+ technologists
+- disabled technologists
+- Black, Latine, Indigenous technologists
+- career switchers
+- student founders
+- caregivers/parents in tech
+
+Step 3:
+
+> What support matters to you?
+
+Options:
+
+- free
+- remote
+- beginner-friendly
+- no experience required
+- mentorship included
+- travel support
+- evening/weekend friendly
+- childcare support
+- application fee waived
+
+Step 4:
+
+> Where should we look?
+
+Fields:
+
+- location
+- mileage range
+- include remote opportunities toggle
+
+Final action:
+
+- Build my stack
+
+#### Daily Stack Entry
+
+After onboarding, users should land on their daily stack, not a generic dashboard.
+
+The first stack should make personalization obvious by showing hardcoded tag-based reasons on each card.
+
+#### Done For Today
+
+After the user reaches the end of the daily stack, show a simple completion state:
+
+> You're done for today.
+>
+> Want to keep looking?
+
+Actions:
+
+- Explore more
+- View saved
+
 ### Daily Stack
 
 The daily stack should feel like short-form discovery rather than a search directory.
