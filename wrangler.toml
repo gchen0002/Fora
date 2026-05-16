@@ -8,6 +8,3 @@ compatibility_flags = ["nodejs_compat"]
 binding = "DB"
 database_name = "fora-prod"
 database_id = "REPLACE_WITH_CLOUDFLARE_D1_DATABASE_ID"
-
-[vars]
-FRONTEND_ORIGIN = "http://localhost:5173"

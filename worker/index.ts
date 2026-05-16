@@ -23,7 +23,14 @@ const app = new Hono<{
 app.use(
   "/api/*",
   cors({
-    origin: (origin, c) => c.env.FRONTEND_ORIGIN ?? origin,
+    origin: (origin, c) => {
+      if (c.env.FRONTEND_ORIGIN) return c.env.FRONTEND_ORIGIN;
+      if (origin && /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)) {
+        return origin;
+      }
+
+      return origin;
+    },
     allowHeaders: ["Authorization", "Content-Type", "x-admin-ingest-secret"],
     allowMethods: ["GET", "POST", "OPTIONS"],
     credentials: true,

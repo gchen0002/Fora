@@ -34,7 +34,13 @@ export async function fetchDailyStack(token: string) {
   });
 
   if (!response.ok) {
-    throw new Error(`Daily Stack request failed: ${response.status}`);
+    const detail = await response.text();
+
+    throw new Error(
+      `Daily Stack request failed: ${response.status}${
+        detail ? ` ${detail}` : ""
+      }`,
+    );
   }
 
   return response.json() as Promise<DailyStackResponse>;

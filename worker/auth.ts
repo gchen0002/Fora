@@ -1,4 +1,4 @@
-import { createClerkClient } from "@clerk/backend";
+import { verifyToken } from "@clerk/backend";
 import type { Context, Next } from "hono";
 
 import type { Env } from "./types";
@@ -11,28 +11,21 @@ type AppContext = Context<{
 }>;
 
 export async function requireUser(c: AppContext, next: Next) {
-  const clerkClient = createClerkClient({
+  const authorization = c.req.header("Authorization");
+
+  if (!authorization?.startsWith("Bearer ")) {
+    return c.json({ error: "Authentication required" }, 401);
+  }
+
+  const token = authorization.slice("Bearer ".length);
+  const payload = await verifyToken(token, {
     secretKey: c.env.CLERK_SECRET_KEY,
-  });
+  }).catch(() => null);
 
-  const authorizedParties = c.env.FRONTEND_ORIGIN
-    ? [c.env.FRONTEND_ORIGIN]
-    : undefined;
-
-  const authResult = await clerkClient.authenticateRequest(c.req.raw, {
-    authorizedParties,
-  });
-
-  if (!authResult.isAuthenticated) {
+  if (!payload?.sub) {
     return c.json({ error: "Authentication required" }, 401);
   }
 
-  const auth = authResult.toAuth();
-
-  if (!auth.userId) {
-    return c.json({ error: "Authentication required" }, 401);
-  }
-
-  c.set("clerkUserId", auth.userId);
+  c.set("clerkUserId", payload.sub);
   await next();
 }

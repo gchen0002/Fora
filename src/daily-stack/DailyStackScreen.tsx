@@ -37,9 +37,13 @@ export function DailyStackScreen() {
           setApiStack(response.stack.map(toApiStackCard));
           setStackError(null);
         }
-      } catch {
+      } catch (error) {
         if (!cancelled) {
-          setStackError("Using preview matches until the Worker API is running.");
+          setStackError(
+            error instanceof Error
+              ? error.message
+              : "Using preview matches until the Worker API is running.",
+          );
         }
       }
     }
