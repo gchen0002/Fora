@@ -68,6 +68,27 @@ Scrape the configured sources into a generated JSON checkpoint:
 npm run ingest:scrape
 ```
 
+The source registry lives in `data/ingest-sources.json`. Supported source
+types are:
+
+- `mlh-season` for MLH hackathon seasons.
+- `generic-page` for trusted one-off pages.
+- `submitted-url` for one user-submitted link.
+- `submitted-links` for a small batch of user-submitted links.
+
+Every adapter emits both normalized opportunities and source reviews. Source
+reviews include `decision`, `relevance_score`, `source_trust_score`,
+`parse_confidence`, and `risk_flags`. Only accepted opportunities are written
+to `data/opportunities.scraped.json`; quarantined and rejected links are kept
+in the ignored `data/ingestion-reviews.json` checkpoint and can be pushed to D1
+for debugging.
+
+To test submitted links without editing the main registry:
+
+```bash
+npm run ingest:scrape -- --sources=data/submitted-sources.example.json
+```
+
 Push scraped opportunities through the admin ingestion endpoint:
 
 ```bash

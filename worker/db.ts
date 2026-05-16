@@ -2,6 +2,7 @@ import { stringifyList, toOpportunity } from "./serialization";
 import type {
   Env,
   IngestOpportunity,
+  IngestSourceReview,
   OpportunityRow,
   Profile,
 } from "./types";
@@ -147,6 +148,61 @@ export async function upsertOpportunity(env: Env, opportunity: IngestOpportunity
       stringifyList(opportunity.topic_tags),
       stringifyList(opportunity.experience_level_tags),
       opportunity.image_url ?? null,
+    )
+    .run();
+
+  return id;
+}
+
+export async function recordSourceReview(env: Env, review: IngestSourceReview) {
+  const id = review.id ?? slugify(`${review.source}-${review.submitted_url}`);
+
+  await env.DB.prepare(
+    `
+      INSERT INTO opportunity_source_reviews (
+        id,
+        submitted_url,
+        canonical_url,
+        source,
+        title,
+        decision,
+        relevance_score,
+        source_trust_score,
+        parse_confidence,
+        risk_flags,
+        notes,
+        raw_summary,
+        updated_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(id) DO UPDATE SET
+        submitted_url = excluded.submitted_url,
+        canonical_url = excluded.canonical_url,
+        source = excluded.source,
+        title = excluded.title,
+        decision = excluded.decision,
+        relevance_score = excluded.relevance_score,
+        source_trust_score = excluded.source_trust_score,
+        parse_confidence = excluded.parse_confidence,
+        risk_flags = excluded.risk_flags,
+        notes = excluded.notes,
+        raw_summary = excluded.raw_summary,
+        updated_at = CURRENT_TIMESTAMP
+    `,
+  )
+    .bind(
+      id,
+      review.submitted_url,
+      review.canonical_url ?? null,
+      review.source,
+      review.title ?? null,
+      review.decision,
+      review.relevance_score ?? 0,
+      review.source_trust_score ?? 0,
+      review.parse_confidence ?? 0,
+      stringifyList(review.risk_flags),
+      review.notes ?? null,
+      review.raw_summary ?? null,
     )
     .run();
 

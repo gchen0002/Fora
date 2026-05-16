@@ -3,6 +3,7 @@
     "type": "mlh-season",
     "name": "Major League Hacking 2026 season",
     "url": "https://www.mlh.com/seasons/2026/events",
-    "source": "mlh"
+    "source": "mlh",
+    "trustLevel": "trusted"
   }
 ]

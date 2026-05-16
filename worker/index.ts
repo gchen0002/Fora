@@ -6,11 +6,12 @@ import {
   getCandidateOpportunities,
   getExploreOpportunities,
   getProfile,
+  recordSourceReview,
   recordUserAction,
   upsertOpportunity,
 } from "./db";
 import { scoreDailyStack } from "./matching";
-import type { Env, IngestOpportunity } from "./types";
+import type { Env, IngestOpportunity, IngestSourceReview } from "./types";
 
 const app = new Hono<{
   Bindings: Env;
@@ -98,14 +99,34 @@ app.post("/api/admin/ingest", async (c) => {
     return c.json({ error: "Unauthorized" }, 401);
   }
 
-  const body = await c.req.json<{ opportunities?: IngestOpportunity[] }>();
+  const body = await c.req.json<{
+    opportunities?: IngestOpportunity[];
+    reviews?: IngestSourceReview[];
+  }>();
   const opportunities = body.opportunities ?? [];
+  const reviews = body.reviews ?? [];
 
-  if (!Array.isArray(opportunities) || opportunities.length === 0) {
-    return c.json({ error: "opportunities must be a non-empty array" }, 400);
+  if (!Array.isArray(opportunities) || !Array.isArray(reviews)) {
+    return c.json({ error: "opportunities and reviews must be arrays" }, 400);
+  }
+
+  if (opportunities.length === 0 && reviews.length === 0) {
+    return c.json(
+      { error: "opportunities or reviews must be a non-empty array" },
+      400,
+    );
   }
 
   const ids: string[] = [];
+  const reviewIds: string[] = [];
+
+  for (const review of reviews) {
+    if (!isValidIngestSourceReview(review)) {
+      return c.json({ error: "Invalid source review payload" }, 400);
+    }
+
+    reviewIds.push(await recordSourceReview(c.env, review));
+  }
 
   for (const opportunity of opportunities) {
     if (!isValidIngestOpportunity(opportunity)) {
@@ -117,7 +138,9 @@ app.post("/api/admin/ingest", async (c) => {
 
   return c.json({
     ingested: ids.length,
+    reviewed: reviewIds.length,
     ids,
+    reviewIds,
   });
 });
 
@@ -133,5 +156,15 @@ function isValidIngestOpportunity(
       opportunity.url &&
       opportunity.source &&
       opportunity.category,
+  );
+}
+
+function isValidIngestSourceReview(
+  review: IngestSourceReview,
+): review is IngestSourceReview {
+  return Boolean(
+    review.submitted_url &&
+      review.source &&
+      ["accept", "quarantine", "reject"].includes(review.decision),
   );
 }

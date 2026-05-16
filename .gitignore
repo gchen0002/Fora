@@ -8,5 +8,6 @@ dist
 *.log
 *.tsbuildinfo
 data/opportunities.scraped.json
+data/ingestion-reviews.json
 vite.config.js
 vite.config.d.ts

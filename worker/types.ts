@@ -95,3 +95,18 @@ export interface IngestOpportunity {
   experience_level_tags?: string[];
   image_url?: string | null;
 }
+
+export interface IngestSourceReview {
+  id?: string;
+  submitted_url: string;
+  canonical_url?: string | null;
+  source: string;
+  title?: string | null;
+  decision: "accept" | "quarantine" | "reject";
+  relevance_score?: number;
+  source_trust_score?: number;
+  parse_confidence?: number;
+  risk_flags?: string[];
+  notes?: string | null;
+  raw_summary?: string | null;
+}

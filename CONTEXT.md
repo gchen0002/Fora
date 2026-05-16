@@ -8,6 +8,22 @@ A mobile-first opportunity discovery app for underrepresented and nontraditional
 
 A tech-access program, scholarship, mentorship option, hackathon, internship, fellowship, coding workshop, or community that a learner could save, dismiss, share, or apply to.
 
+## Opportunity Source
+
+A trusted place Fora can ingest opportunities from, such as an official API, structured event page, curated list, or admin-submitted URL. Opportunity Sources should be selected for trust, access relevance, and explainability before volume.
+
+## Community Calendar Source
+
+A public or partner-provided calendar from a club, university organization, student community, or event platform that lists recurring opportunities relevant to tech learners. Fora should prioritize remote or nationally accessible Community Calendar Sources first, then add campus-specific packs when there is enough local demand.
+
+Luma should be treated as a partner/API-backed Community Calendar Source for calendars Fora controls or has permission to access. Broad event discovery should prefer official/public ICS feeds, Google Calendar public feeds, university event pages, and club calendars over brittle platform scraping.
+
+## User-Submitted Source
+
+An opportunity or event link discovered and submitted by a Fora user. User-Submitted Sources should be reviewed, deduplicated, and assigned a trust state before they become scheduled Opportunity Sources or appear in recommendations.
+
+For the MVP, User-Submitted Sources can be automatically rejected or quarantined when the adapter detects clear fake, spammy, inaccessible, expired, or unrelated content. Human approval should be reserved for uncertain or high-impact cases rather than every submitted link.
+
 ## Daily Stack
 
 A limited set of high-fit opportunities shown as a short daily ritual. The Daily Stack is not an infinite feed or generic directory.
