@@ -3,11 +3,12 @@
  * Pure white background, Google.com aesthetic.
  * Google brand colors (Blue #4285F4, Red #EA4335, Yellow #FBBC05, Green #34A853)
  * used as tasteful accents on a bright, minimal canvas.
- * Clean sans-serif type, airy spacing, smooth animations.
+ * Apple/Mac-style frosted Sign In button.
  */
 import { motion } from "framer-motion";
 import { ArrowRight, Megaphone, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const G = {
@@ -32,13 +33,12 @@ export function VariationFive() {
           </div>
         </div>
       </main>
-
-      <VariationNav current={5} />
     </div>
   );
 }
 
 function Nav() {
+  const navigate = useNavigate();
   return (
     <motion.header
       initial={{ opacity: 0, y: -20 }}
@@ -65,6 +65,7 @@ function Nav() {
           Discover Events
         </a>
         <button
+          onClick={() => navigate('/feed')}
           className="rounded px-6 py-2 text-sm font-medium text-white transition-all hover:shadow-md active:scale-[0.98]"
           style={{ background: G.blue }}
         >
@@ -382,30 +383,5 @@ function RightVisual() {
         />
       </div>
     </motion.div>
-  );
-}
-
-function VariationNav({ current }: { current: number }) {
-  return (
-    <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2">
-      <div className="flex items-center gap-2 rounded-full border border-[#e8eaed] bg-white px-4 py-2.5 shadow-[0_2px_12px_rgba(0,0,0,0.08)]">
-        {[1, 2, 3, 4, 5].map((n) => {
-          const colors = [G.blue, G.red, G.yellow, G.green, G.blue];
-          return (
-            <a
-              key={n}
-              href={`/${n}`}
-              className={cn(
-                "grid h-8 w-8 place-items-center rounded-full text-xs font-medium transition-all",
-                n === current ? "text-white" : "text-[#5f6368] hover:bg-[#f1f3f4]"
-              )}
-              style={n === current ? { background: colors[n - 1] } : undefined}
-            >
-              {n}
-            </a>
-          );
-        })}
-      </div>
-    </div>
   );
 }
