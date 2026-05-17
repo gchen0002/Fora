@@ -12,7 +12,7 @@ import {
   upsertOpportunity,
   upsertProfile,
 } from "./db";
-import { scoreDailyStack } from "./matching";
+import { buildDailyStack, buildExploreMore } from "./matching";
 import type { Env, IngestOpportunity, IngestSourceReview, Profile } from "./types";
 import { parseJsonList } from "./serialization";
 
@@ -91,7 +91,7 @@ app.get("/api/daily-stack", requireUser, async (c) => {
     getCandidateOpportunities(c.env, clerkUserId),
   ]);
 
-  const stack = scoreDailyStack(opportunities, profile).slice(0, 10);
+  const stack = buildDailyStack(opportunities, profile);
 
   return c.json({
     stack,
@@ -106,7 +106,7 @@ app.get("/api/explore-more", requireUser, async (c) => {
     getExploreOpportunities(c.env, clerkUserId),
   ]);
 
-  const stack = scoreDailyStack(opportunities, profile).slice(10, 35);
+  const stack = buildExploreMore(opportunities, profile);
 
   return c.json({
     opportunities: stack,

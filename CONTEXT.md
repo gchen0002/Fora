@@ -78,6 +78,12 @@ The private home-base location a learner gives Fora for distance estimates and n
 
 The transparent user-facing reasons an opportunity appears in the Daily Stack. Match explanations should be generated from structured reason keys, not freeform text.
 
+## Match Score
+
+A private ranking score generated from separate intent, access, identity, topic, location, urgency, and experience-fit buckets. Intent, access, and location should carry the strongest practical weight; identity should only boost; urgency should be capped so an approaching deadline cannot overpower a poor practical fit.
+
+Matching should apply strong penalties for expired opportunities, clearly paid opportunities when the learner needs free access, far-away in-person opportunities, and advanced-only opportunities for beginner learners.
+
 ## Identity Fit
 
 A private matching signal based on optional community or identity preferences the learner chooses during Profile Onboarding. Identity Fit should boost and explain relevant opportunities, not act as a hard filter that hides otherwise useful general opportunities.
