@@ -40,6 +40,18 @@ if (typeof document !== "undefined" && !document.getElementById(SPECTRUM_STYLE_I
       -webkit-text-fill-color: transparent;
       animation: spectrumShift 4s ease infinite;
     }
+    .fora-line-clamp-2,
+    .fora-line-clamp-3 {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .fora-line-clamp-2 {
+      -webkit-line-clamp: 2;
+    }
+    .fora-line-clamp-3 {
+      -webkit-line-clamp: 3;
+    }
   `;
   document.head.appendChild(style);
 }
@@ -260,12 +272,12 @@ function CategoryTabs({
   onChange: (category: string) => void;
 }) {
   return (
-    <div className="fixed left-0 right-0 top-14 z-40 flex justify-center px-3">
-      <div className="flex max-w-full gap-2 overflow-x-auto rounded-full border border-white/12 bg-black/24 p-1 text-xs font-black text-white shadow-lg backdrop-blur-xl scrollbar-hide">
+    <div className="fixed left-0 right-0 top-10 z-40 flex justify-center px-2 sm:top-14 sm:px-3">
+      <div className="flex max-w-full gap-1.5 overflow-x-auto rounded-full border border-white/12 bg-black/32 p-1 text-[0.68rem] font-black text-white shadow-lg backdrop-blur-xl scrollbar-hide sm:gap-2 sm:text-xs">
         {categories.map((category) => (
           <button
             className={cn(
-              "shrink-0 rounded-full px-3 py-2 transition",
+              "shrink-0 rounded-full px-3 py-1.5 transition sm:py-2",
               activeCategory === category.id
                 ? "bg-white text-[#10131f]"
                 : "text-white/75 hover:bg-white/12 hover:text-white",
@@ -313,10 +325,10 @@ function ProductiveScrollCard({
       ) : null}
       <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.12),rgba(0,0,0,0.28)_35%,rgba(0,0,0,0.85)_100%)]" />
 
-      <div className="relative z-10 mx-auto flex h-full w-full max-w-[460px] flex-col items-center px-5 pb-5 pt-16 sm:px-6">
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-end pb-4 text-center">
+      <div className="relative z-10 mx-auto grid h-full w-full max-w-[460px] grid-rows-[minmax(0,1fr)_auto] px-4 pb-3 pt-[5.85rem] sm:px-6 sm:pb-5 sm:pt-16">
+        <div className="flex min-h-0 flex-col items-center justify-end pb-3 text-center sm:pb-4">
           {event.imageUrl && event.imageKind === "logo" ? (
-            <div className="mb-5 grid h-24 w-24 place-items-center rounded-3xl border border-white/20 bg-white/92 p-4 shadow-[0_16px_50px_rgba(0,0,0,0.28)]">
+            <div className="mb-3 grid h-20 w-20 place-items-center rounded-3xl border border-white/20 bg-white/92 p-3 shadow-[0_16px_50px_rgba(0,0,0,0.28)] sm:mb-5 sm:h-24 sm:w-24 sm:p-4">
               <img
                 alt=""
                 className="max-h-full max-w-full object-contain"
@@ -325,9 +337,9 @@ function ProductiveScrollCard({
             </div>
           ) : null}
           {/* Category badges */}
-          <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
+          <div className="mb-2 flex max-h-[2rem] flex-wrap items-center justify-center gap-2 overflow-hidden sm:mb-4 sm:max-h-none">
             <span
-              className="rounded-full border px-3.5 py-1.5 text-[0.65rem] font-bold uppercase tracking-[0.22em] text-white"
+              className="rounded-full border px-3 py-1.5 text-[0.58rem] font-bold uppercase tracking-[0.22em] text-white sm:px-3.5 sm:text-[0.65rem]"
               style={{
                 background: event.style.accent,
                 borderColor: `${event.style.accent}88`,
@@ -336,17 +348,17 @@ function ProductiveScrollCard({
             >
               {event.style.marker}
             </span>
-            <span className="rounded-full border border-white/12 bg-white/10 px-3 py-1.5 text-[0.7rem] font-semibold text-white/90 backdrop-blur-lg">
+            <span className="rounded-full border border-white/12 bg-white/10 px-3 py-1.5 text-[0.62rem] font-semibold text-white/90 backdrop-blur-lg sm:text-[0.7rem]">
               {event.style.label}
             </span>
-            <span className="rounded-full border border-white/12 bg-white/10 px-3 py-1.5 text-[0.7rem] font-semibold text-white/90 backdrop-blur-lg">
+            <span className="rounded-full border border-white/12 bg-white/10 px-3 py-1.5 text-[0.62rem] font-semibold text-white/90 backdrop-blur-lg sm:text-[0.7rem]">
               {event.match}% match
             </span>
           </div>
 
           {/* Instant-read eyebrow */}
           <p
-            className="mb-3 flex items-center justify-center gap-2 text-[0.68rem] uppercase tracking-[0.24em] text-white/55"
+            className="mb-2 flex items-center justify-center gap-2 text-[0.58rem] uppercase tracking-[0.24em] text-white/55 sm:mb-3 sm:text-[0.68rem]"
             style={{ fontFamily: "'DM Mono', monospace" }}
           >
             <Sparkles className="h-3 w-3" />
@@ -355,44 +367,48 @@ function ProductiveScrollCard({
 
           {/* Hero title */}
           <h1
-            className="text-[3.2rem] font-bold leading-[0.92] tracking-[-0.02em] sm:text-[4.2rem] md:text-[4rem]"
+            className="max-w-[92vw] text-balance text-[clamp(2.1rem,10.5vw,3.2rem)] font-bold leading-[0.92] tracking-[-0.02em] sm:max-w-[13ch] sm:text-[4rem] md:max-w-[15ch] md:text-[3.8rem]"
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
               textShadow: "0 4px 24px rgba(0,0,0,0.5), 0 1px 4px rgba(0,0,0,0.3)",
             }}
+            title={event.title}
           >
             {event.title}
           </h1>
 
           {/* Description */}
-          <p className="mt-5 max-w-[32ch] text-[0.94rem] font-medium leading-relaxed text-white/72">
+          <p
+            className="fora-line-clamp-2 mt-3 min-h-[2.3rem] max-w-[31ch] text-[0.82rem] font-medium leading-snug text-white/72 sm:mt-4 sm:min-h-[2.9rem] sm:max-w-[34ch] sm:text-[0.94rem] sm:leading-normal"
+            title={event.description}
+          >
             {event.description}
           </p>
         </div>
 
         {/* Bottom info card */}
-        <div className="w-full overflow-hidden rounded-[1.4rem] border border-white/8 bg-white shadow-[0_22px_70px_rgba(0,0,0,0.4)]">
-          {/* Accent strip */}
-          <div className="h-1" style={{ background: event.style.accent }} />
-
-          <div className="p-4 text-left">
+        <div
+          className="w-full overflow-hidden rounded-[1.25rem] border-2 bg-white shadow-[0_22px_70px_rgba(0,0,0,0.4)] sm:rounded-[1.4rem]"
+          style={{ borderColor: event.style.accent }}
+        >
+          <div className="p-3 text-left sm:p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p
-                  className="text-[0.65rem] font-medium uppercase tracking-[0.2em]"
+                  className="text-[0.58rem] font-medium uppercase tracking-[0.2em] sm:text-[0.65rem]"
                   style={{ color: event.style.accent, fontFamily: "'DM Mono', monospace" }}
                 >
                   {event.style.focusLabel}
                 </p>
                 <h2
-                  className="mt-1.5 text-[1.25rem] font-bold leading-tight text-[#0a0d14]"
+                  className="mt-1 text-[1.05rem] font-bold leading-tight text-[#0a0d14] sm:mt-1.5 sm:text-[1.25rem]"
                   style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                 >
                   {event.decisionHeadline}
                 </h2>
               </div>
               <div
-                className="shrink-0 rounded-full px-2.5 py-1 text-[0.65rem] font-semibold text-white"
+                className="shrink-0 rounded-full px-2.5 py-1 text-[0.58rem] font-semibold text-white sm:text-[0.65rem]"
                 style={{
                   background: event.style.accent,
                   fontFamily: "'DM Mono', monospace",
@@ -402,15 +418,15 @@ function ProductiveScrollCard({
               </div>
             </div>
 
-            <div className="mt-3.5 grid grid-cols-2 gap-2">
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-3.5">
               <InfoPill icon={<CalendarDays className="h-3.5 w-3.5" />} label={event.date} />
               <InfoPill icon={<MapPin className="h-3.5 w-3.5" />} label={event.location} />
             </div>
 
-            <div className="mt-3 flex flex-wrap gap-1.5">
+            <div className="mt-2.5 flex flex-wrap gap-1.5 sm:mt-3">
               {event.tags.map((tag) => (
                 <span
-                  className="rounded-full bg-[#1e293b]/8 px-2.5 py-1 text-[0.68rem] font-semibold text-[#334155]"
+                  className="rounded-full bg-[#1e293b]/8 px-2 py-0.5 text-[0.62rem] font-semibold text-[#334155] sm:px-2.5 sm:py-1 sm:text-[0.68rem]"
                   key={tag}
                 >
                   {tag}
@@ -418,13 +434,13 @@ function ProductiveScrollCard({
               ))}
             </div>
 
-            <p className="mt-3 text-[0.7rem] italic text-[#64748b]">
+            <p className="mt-2.5 text-[0.64rem] italic text-[#64748b] sm:mt-3 sm:text-[0.7rem]">
               {event.trustCue}
             </p>
 
-            <div className="mt-4 grid grid-cols-[1fr_auto] gap-2">
+            <div className="mt-3 grid grid-cols-[1fr_auto] gap-2 sm:mt-4">
               <a
-                className="inline-flex h-[3.2rem] items-center justify-center gap-2 rounded-xl text-sm font-bold text-white transition active:scale-[0.97]"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl text-sm font-bold text-white transition active:scale-[0.97] sm:h-[3.2rem]"
                 href={event.url}
                 rel="noreferrer"
                 style={{
@@ -439,7 +455,7 @@ function ProductiveScrollCard({
               <button
                 aria-label={isSaved ? "Remove saved opportunity" : "Save opportunity"}
                 className={cn(
-                  "grid h-[3.2rem] w-[3.2rem] place-items-center rounded-xl border transition active:scale-[0.97]",
+                  "grid h-12 w-12 place-items-center rounded-xl border transition active:scale-[0.97] sm:h-[3.2rem] sm:w-[3.2rem]",
                   isSaved
                     ? "border-[#10131f] bg-[#10131f] text-white"
                     : "border-[#d1d9e2] bg-[#f8fafc] text-[#334155]",
@@ -454,7 +470,7 @@ function ProductiveScrollCard({
         </div>
 
         {index < total - 1 ? (
-          <div className="mt-3 flex animate-pulse items-center justify-center gap-1 text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-white/40">
+          <div className="mt-2 hidden animate-pulse items-center justify-center gap-1 text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-white/40 sm:flex">
             <ChevronDown className="h-3.5 w-3.5" />
             Next fit
           </div>
@@ -473,13 +489,13 @@ function FeedShell({
 }) {
   return (
     <div className="relative bg-black">
-      <div className="fixed left-0 right-0 top-0 z-50 flex h-14 items-center justify-between bg-gradient-to-b from-black/60 to-transparent px-4">
+      <div className="fixed left-0 right-0 top-0 z-50 flex h-10 items-center justify-between bg-gradient-to-b from-black/70 to-transparent px-3 sm:h-14 sm:px-4">
         <button
           className="text-white/80 transition-colors hover:text-white"
           onClick={navigateHome}
           type="button"
         >
-          <X className="h-6 w-6" />
+          <X className="h-5 w-5 sm:h-6 sm:w-6" />
         </button>
         <button
           aria-label="Open landing page"

@@ -48,6 +48,8 @@ Productive Scroll should use a consistent card shell with type-adaptive emphasis
 
 On mobile, each Productive Scroll card should behave like a full-screen card with a bottom action sheet: an immersive visual/type area for quick recognition and a stable lower panel for title, match reasons, date, location, access tags, and primary actions.
 
+Productive Scroll navigation chrome should stay compact on mobile and must not hide the opportunity's instant-read area. The opportunity card, not the shell navigation, should own the first screen.
+
 Productive Scroll should treat apply and save activity as useful popularity signals. Likes and comments are not part of the MVP feed; they can make the experience feel social-first instead of opportunity-first.
 
 Popularity should be shown as a soft trust cue only when it helps the learner decide, such as "saved by similar learners" or "popular with beginners." Raw counters should not dominate the card or override match fit.
