@@ -1,5 +1,7 @@
 import { apiUrl } from "./url";
 
+const PROFILE_REQUEST_TIMEOUT_MS = 15_000;
+
 export interface UserProfile {
   displayName: string | null;
   locationText: string | null;
@@ -23,18 +25,20 @@ export interface ProfileResponse {
 export type ProfilePayload = Partial<UserProfile>;
 
 export async function fetchProfile(token: string, signal?: AbortSignal) {
-  const response = await fetch(apiUrl("/api/profile"), {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    signal,
+  return withTimeout(signal, async (requestSignal) => {
+    const response = await fetch(apiUrl("/api/profile"), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      signal: requestSignal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Profile request failed: ${response.status}`);
+    }
+
+    return response.json() as Promise<ProfileResponse>;
   });
-
-  if (!response.ok) {
-    throw new Error(`Profile request failed: ${response.status}`);
-  }
-
-  return response.json() as Promise<ProfileResponse>;
 }
 
 export async function saveProfile(
@@ -42,23 +46,52 @@ export async function saveProfile(
   profile: ProfilePayload,
   signal?: AbortSignal,
 ) {
-  const response = await fetch(apiUrl("/api/profile"), {
-    body: JSON.stringify(profile),
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    method: "PUT",
-    signal,
+  return withTimeout(signal, async (requestSignal) => {
+    const response = await fetch(apiUrl("/api/profile"), {
+      body: JSON.stringify(profile),
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      method: "PUT",
+      signal: requestSignal,
+    });
+
+    if (!response.ok) {
+      const detail = await response.text();
+
+      throw new Error(
+        `Profile save failed: ${response.status}${detail ? ` ${detail}` : ""}`,
+      );
+    }
+
+    return response.json() as Promise<ProfileResponse>;
   });
+}
 
-  if (!response.ok) {
-    const detail = await response.text();
+async function withTimeout<T>(
+  signal: AbortSignal | undefined,
+  request: (signal: AbortSignal) => Promise<T>,
+) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), PROFILE_REQUEST_TIMEOUT_MS);
 
-    throw new Error(
-      `Profile save failed: ${response.status}${detail ? ` ${detail}` : ""}`,
-    );
+  function abortFromParent() {
+    controller.abort();
   }
 
-  return response.json() as Promise<ProfileResponse>;
+  signal?.addEventListener("abort", abortFromParent, { once: true });
+
+  try {
+    return await request(controller.signal);
+  } catch (cause) {
+    if (controller.signal.aborted && !signal?.aborted) {
+      throw new Error("Profile request timed out. Check that the local Worker is running.");
+    }
+
+    throw cause;
+  } finally {
+    window.clearTimeout(timeoutId);
+    signal?.removeEventListener("abort", abortFromParent);
+  }
 }

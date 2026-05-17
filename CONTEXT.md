@@ -4,6 +4,10 @@
 
 A mobile-first opportunity discovery app for underrepresented and nontraditional tech learners.
 
+## Landing Page
+
+A short introduction to Fora whose primary job is to move a learner into Profile Onboarding or their existing Daily Stack. The Landing Page should not behave like a directory, docs page, or second navigation surface.
+
 ## Opportunity
 
 A tech-access program, scholarship, mentorship option, hackathon, internship, fellowship, coding workshop, or community that a learner could save, dismiss, share, or apply to.
@@ -44,6 +48,8 @@ Productive Scroll should use a consistent card shell with type-adaptive emphasis
 
 On mobile, each Productive Scroll card should behave like a full-screen card with a bottom action sheet: an immersive visual/type area for quick recognition and a stable lower panel for title, match reasons, date, location, access tags, and primary actions.
 
+Productive Scroll navigation chrome should stay compact on mobile and must not hide the opportunity's instant-read area. The opportunity card, not the shell navigation, should own the first screen.
+
 Productive Scroll should treat apply and save activity as useful popularity signals. Likes and comments are not part of the MVP feed; they can make the experience feel social-first instead of opportunity-first.
 
 Popularity should be shown as a soft trust cue only when it helps the learner decide, such as "saved by similar learners" or "popular with beginners." Raw counters should not dominate the card or override match fit.
@@ -77,6 +83,12 @@ The private home-base location a learner gives Fora for distance estimates and n
 ## Match Explanation
 
 The transparent user-facing reasons an opportunity appears in the Daily Stack. Match explanations should be generated from structured reason keys, not freeform text.
+
+## Match Score
+
+A private ranking score generated from separate intent, access, identity, topic, location, urgency, and experience-fit buckets. Intent, access, and location should carry the strongest practical weight; identity should only boost; urgency should be capped so an approaching deadline cannot overpower a poor practical fit.
+
+Matching should apply strong penalties for expired opportunities, clearly paid opportunities when the learner needs free access, far-away in-person opportunities, and advanced-only opportunities for beginner learners.
 
 ## Identity Fit
 
