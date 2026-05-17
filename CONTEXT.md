@@ -80,6 +80,14 @@ Access Needs can have different strengths. Cost sensitivity should strongly affe
 
 The private home-base location a learner gives Fora for distance estimates and nearby matching. Primary Location should be used to show approximate miles away and prioritize reachable in-person opportunities, not to publicly label the learner.
 
+## Application Deadline
+
+The date by which a learner must apply, register, or submit interest for an Opportunity. Application Deadline should affect urgency and eligibility, but it should be capped in matching so an urgent low-fit opportunity does not outrank a practical high-fit opportunity.
+
+## Event Start Date
+
+The date an Opportunity begins, such as the first day of a hackathon, workshop, cohort, or event. Event Start Date should help determine whether an Opportunity is timely and realistic, and should not be confused with Application Deadline when both are available.
+
 ## Match Explanation
 
 The transparent user-facing reasons an opportunity appears in the Daily Stack. Match explanations should be generated from structured reason keys, not freeform text.

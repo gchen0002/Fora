@@ -14,6 +14,7 @@ const WHY_LABELS: Record<string, string> = {
   free: "free",
   "goal-fit": "matches your goals",
   "identity-fit": "designed for you",
+  "location-unknown": "location unclear",
   "low-income-friendly": "cost-conscious friendly",
   "mentorship-included": "includes mentorship",
   nearby: "near you",
@@ -22,6 +23,7 @@ const WHY_LABELS: Record<string, string> = {
   remote: "remote",
   "scholarship-eligible": "has funding available",
   "stretch-fit": "stretch fit",
+  "time-sensitive": "deadline soon",
   "topic-fit": "matches your interests",
   "travel-support": "offers travel support",
   "women-focused": "designed for women in tech",
@@ -173,7 +175,7 @@ function scoreOpportunity(
   score += scoreIdentityFit(allTags, context.identityTags, reasons);
   score += scoreTopicFit(allTags, context.interestTags, reasons);
   score += scoreLocationFit(opportunity, context, distanceMiles, reasons);
-  score += scoreUrgency(opportunity.deadline);
+  score += scoreUrgency(opportunity.deadline, reasons);
   score += scoreExperienceFit(allTags, context, reasons);
 
   if (isExpired(opportunity.deadline)) {
@@ -322,35 +324,68 @@ function scoreLocationFit(
   distanceMiles: number | null,
   reasons: Set<string>,
 ) {
+  const wantsRemote = context.remotePreference === "remote";
+
   if (opportunity.isRemote) {
     reasons.add("remote");
-    return context.remotePreference === "remote" ? 4 : 2;
+    return wantsRemote ? 12 : 5;
   }
 
-  if (distanceMiles === null || context.mileageRange === null) {
-    return -2;
+  if (wantsRemote) {
+    if (distanceMiles === null || context.mileageRange === null) {
+      reasons.add("location-unknown");
+      return -6;
+    }
+  }
+
+  if (distanceMiles === null) {
+    if (!opportunity.locationText) reasons.add("location-unknown");
+    return opportunity.locationText ? -1 : -4;
+  }
+
+  if (context.mileageRange === null) {
+    if (distanceMiles <= 25) {
+      reasons.add("nearby");
+      return 8;
+    }
+
+    if (distanceMiles <= 75) {
+      reasons.add("nearby");
+      return 4;
+    }
+
+    return wantsRemote ? -12 : -4;
   }
 
   if (distanceMiles <= context.mileageRange) {
     reasons.add("nearby");
-    return 10;
+    if (distanceMiles <= 10) return 16;
+    if (distanceMiles <= 25) return 14;
+    return 12;
   }
 
   const overage = distanceMiles - context.mileageRange;
   reasons.add("out-of-range");
-  if (overage <= 25) return -8;
-  if (overage <= 100) return -16;
-  return -24;
+  if (overage <= 15) return -10;
+  if (overage <= 50) return -18;
+  if (overage <= 150) return -28;
+  return -36;
 }
 
-function scoreUrgency(deadline: string | null): number {
+function scoreUrgency(deadline: string | null, reasons: Set<string>): number {
   if (!deadline) return 0;
 
   const daysUntilDeadline = getDaysUntilDeadline(deadline);
   if (daysUntilDeadline === null) return 0;
   if (daysUntilDeadline < 0) return 0;
-  if (daysUntilDeadline <= 7) return 8;
-  if (daysUntilDeadline <= 21) return 5;
+  if (daysUntilDeadline <= 7) {
+    reasons.add("time-sensitive");
+    return 6;
+  }
+  if (daysUntilDeadline <= 21) {
+    reasons.add("time-sensitive");
+    return 4;
+  }
   if (daysUntilDeadline <= 45) return 2;
 
   return 0;
@@ -467,13 +502,15 @@ function getReasonLabels(reasons: Set<string>, selectedGoalFit: boolean) {
   const orderedReasons = [
     "goal-fit",
     "access-fit",
-    "topic-fit",
-    "identity-fit",
     "nearby",
     "remote",
+    "topic-fit",
+    "identity-fit",
+    "time-sensitive",
     "free",
     "beginner-friendly",
     "out-of-range",
+    "location-unknown",
     "stretch-fit",
     ...reasons,
   ];
@@ -532,20 +569,51 @@ function isExpired(deadline: string | null) {
 }
 
 function getDaysUntilDeadline(deadline: string | null) {
-  if (!deadline) return null;
+  const deadlineDate = parseOpportunityDate(deadline);
+  if (!deadlineDate) return null;
 
-  const deadlineDate = new Date(deadline);
-  if (Number.isNaN(deadlineDate.getTime())) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  deadlineDate.setHours(0, 0, 0, 0);
 
-  return Math.ceil((deadlineDate.getTime() - Date.now()) / 86_400_000);
+  return Math.ceil((deadlineDate.getTime() - today.getTime()) / 86_400_000);
 }
 
 function getDeadlineTime(deadline: string | null) {
-  if (!deadline) return Number.POSITIVE_INFINITY;
+  const date = parseOpportunityDate(deadline);
 
-  const value = new Date(deadline).getTime();
+  return date ? date.getTime() : Number.POSITIVE_INFINITY;
+}
 
-  return Number.isNaN(value) ? Number.POSITIVE_INFINITY : value;
+function parseOpportunityDate(value: string | null) {
+  if (!value) return null;
+
+  const input = value.trim();
+  if (!input) return null;
+
+  const withExplicitTime = /^\d{4}-\d{2}-\d{2}$/.test(input)
+    ? `${input}T00:00:00`
+    : input;
+  let parsed = new Date(withExplicitTime);
+
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  if (!/\d{4}/.test(input)) {
+    const today = new Date();
+    const inferred = new Date(today.getFullYear(), parsed.getMonth(), parsed.getDate());
+    inferred.setHours(0, 0, 0, 0);
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    if (inferred.getTime() < todayStart.getTime()) {
+      inferred.setFullYear(inferred.getFullYear() + 1);
+    }
+
+    parsed = inferred;
+  }
+
+  return parsed;
 }
 
 function getDistanceMiles(
