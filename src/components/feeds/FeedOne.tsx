@@ -500,8 +500,16 @@ function ProductiveScrollCard({
             </div>
 
             <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-3.5">
-              <InfoPill icon={<CalendarDays className="h-3.5 w-3.5" />} label={event.date} />
-              <InfoPill icon={<MapPin className="h-3.5 w-3.5" />} label={event.location} />
+              <InfoPill
+                icon={<CalendarDays className="h-3.5 w-3.5" />}
+                label={event.date}
+                sublabel={event.dateContext}
+              />
+              <InfoPill
+                icon={<MapPin className="h-3.5 w-3.5" />}
+                label={event.location}
+                sublabel={event.locationContext}
+              />
             </div>
 
             <div className="mt-2.5 flex flex-wrap gap-1.5 sm:mt-3">
@@ -635,11 +643,31 @@ function CenteredFeedState({
   );
 }
 
-function InfoPill({ icon, label }: { icon: ReactNode; label: string }) {
+function InfoPill({
+  icon,
+  label,
+  sublabel,
+}: {
+  icon: ReactNode;
+  label: string;
+  sublabel?: string | null;
+}) {
   return (
-    <div className="flex min-w-0 items-center gap-2 rounded-lg bg-[#f1f5f9] px-3 py-2.5 text-[0.72rem] font-semibold text-[#1e293b]">
+    <div className="flex min-w-0 items-center gap-2 rounded-lg bg-[#f1f5f9] px-3 py-2.5 text-[#1e293b]">
       <span className="shrink-0 text-[#64748b]">{icon}</span>
-      <span className="truncate" style={{ fontFamily: "'DM Mono', monospace" }}>{label}</span>
+      <span className="min-w-0">
+        <span
+          className="block truncate text-[0.72rem] font-semibold"
+          style={{ fontFamily: "'DM Mono', monospace" }}
+        >
+          {label}
+        </span>
+        {sublabel ? (
+          <span className="mt-0.5 block truncate text-[0.56rem] font-black uppercase tracking-[0.08em] text-[#64748b]">
+            {sublabel}
+          </span>
+        ) : null}
+      </span>
     </div>
   );
 }
@@ -656,9 +684,11 @@ function toFeedItem(opportunity: ApiStackOpportunity, index: number) {
     description: opportunity.description,
     category,
     date: formatDate(opportunity.deadline),
+    dateContext: getDateContext(opportunity.deadline),
     decisionHeadline: getDecisionHeadline(opportunity, style.label),
     instantRead: getInstantRead(opportunity),
     location: getLocationLabel(opportunity),
+    locationContext: getLocationContext(opportunity),
     match: opportunity.fitScore,
     imageKind: opportunity.imageKind,
     imageUrl: opportunity.imageUrl,
@@ -730,14 +760,21 @@ function getInstantRead(opportunity: ApiStackOpportunity) {
 }
 
 function getLocationLabel(opportunity: ApiStackOpportunity) {
-  if (opportunity.distanceMiles !== null) {
-    return `${opportunity.distanceMiles} mi away`;
-  }
-
   if (opportunity.isRemote) return "Remote";
   if (opportunity.locationText) return opportunity.locationText;
 
   return "Location TBD";
+}
+
+function getLocationContext(opportunity: ApiStackOpportunity) {
+  if (opportunity.distanceMiles === null) {
+    return opportunity.isRemote ? "Work from anywhere" : null;
+  }
+
+  const miles = Math.max(0, Math.round(opportunity.distanceMiles));
+  if (miles === 0) return "Near you";
+
+  return `${miles} mi away`;
 }
 
 function getTrustCue(opportunity: ApiStackOpportunity, index: number) {
@@ -857,12 +894,58 @@ function getTagStyle(tag: string, accent: string): CSSProperties {
 }
 
 function formatDate(value: string | null) {
-  if (!value) return "Open timing";
+  const date = parseOpportunityDate(value);
+  if (!date) return "Open timing";
 
-  return new Date(value).toLocaleDateString("en-US", {
+  return date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
   });
+}
+
+function getDateContext(value: string | null) {
+  if (!value) return "Rolling";
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const deadline = parseOpportunityDate(value);
+  if (!deadline) return "Date set";
+  deadline.setHours(0, 0, 0, 0);
+
+  const daysUntil = Math.ceil((deadline.getTime() - today.getTime()) / 86_400_000);
+  if (daysUntil < 0) return "Ended";
+  if (daysUntil === 0) return "Today";
+  if (daysUntil === 1) return "Tomorrow";
+
+  return `${daysUntil} days left`;
+}
+
+function parseOpportunityDate(value: string | null) {
+  if (!value) return null;
+
+  const withExplicitTime = /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? `${value}T00:00:00`
+    : value;
+  let parsed = new Date(withExplicitTime);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  if (!/\d{4}/.test(value)) {
+    const today = new Date();
+    parsed = new Date(today.getFullYear(), parsed.getMonth(), parsed.getDate());
+    parsed.setHours(0, 0, 0, 0);
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    if (parsed.getTime() < todayStart.getTime()) {
+      parsed.setFullYear(parsed.getFullYear() + 1);
+    }
+  }
+
+  return parsed;
 }
 
 function compactUnique(values: string[]) {
