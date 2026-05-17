@@ -577,30 +577,38 @@ function LeftCopy() {
 
 function TypewriterHeading() {
   const [displayedText, setDisplayedText] = useState("");
-  const fullText = "Find your\nplace in\ntech.";
   
   useEffect(() => {
+    const phrases = [
+      "Find your\nplace in\ntech.",
+      "Discover your\ndaily\nstack.",
+      "Match your\ngoals in\ntech."
+    ];
     let timeoutId: ReturnType<typeof setTimeout>;
     let isDeleting = false;
-    let i = 0;
+    let textIndex = 0;
+    let charIndex = 0;
 
     function loop() {
+      const currentText = phrases[textIndex];
+      
       if (isDeleting) {
-        setDisplayedText(fullText.slice(0, i - 1));
-        i--;
+        setDisplayedText(currentText.slice(0, charIndex - 1));
+        charIndex--;
       } else {
-        setDisplayedText(fullText.slice(0, i + 1));
-        i++;
+        setDisplayedText(currentText.slice(0, charIndex + 1));
+        charIndex++;
       }
 
       let speed = isDeleting ? 30 : 70;
 
-      if (!isDeleting && i === fullText.length) {
+      if (!isDeleting && charIndex === currentText.length) {
         speed = 3000; // Pause at the end for 3 seconds
         isDeleting = true;
-      } else if (isDeleting && i === 0) {
+      } else if (isDeleting && charIndex === 0) {
         speed = 1000; // Pause before typing again
         isDeleting = false;
+        textIndex = (textIndex + 1) % phrases.length;
       }
 
       timeoutId = setTimeout(loop, speed);
