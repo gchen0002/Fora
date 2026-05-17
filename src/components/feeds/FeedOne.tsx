@@ -5,8 +5,9 @@ import {
   CalendarDays,
   ChevronDown,
   Clock3,
-  SlidersHorizontal,
   MapPin,
+  Plus,
+  SlidersHorizontal,
   Sparkles,
   X,
 } from "lucide-react";
@@ -21,6 +22,7 @@ import {
 } from "@/api/actions";
 import type { ApiStackOpportunity } from "@/api/daily-stack";
 import { fetchDailyStack, fetchExploreMore } from "@/api/daily-stack";
+import { submitOpportunityUrl } from "@/api/submitted-sources";
 import { cn } from "@/lib/utils";
 
 /* ── Spectrum animation keyframes ── */
@@ -578,6 +580,43 @@ function FeedShell({
   children: ReactNode;
   navigateHome: () => void;
 }) {
+  const { getToken } = useAuth();
+  const [isSubmitOpen, setIsSubmitOpen] = useState(false);
+  const [submittedUrl, setSubmittedUrl] = useState("");
+  const [submitNote, setSubmitNote] = useState("");
+  const [submitStatus, setSubmitStatus] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmitOpportunity(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+    setSubmitStatus(null);
+
+    try {
+      const token = await getToken();
+      if (!token) throw new Error("Sign in again to submit an opportunity.");
+
+      await submitOpportunityUrl(token, {
+        url: submittedUrl,
+        note: submitNote || null,
+      });
+
+      setSubmittedUrl("");
+      setSubmitNote("");
+      setSubmitStatus("Saved for review. We will add it to the scraper queue later.");
+    } catch (cause) {
+      setSubmitError(
+        cause instanceof Error ? cause.message : "Could not submit this URL.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <div className="relative bg-black">
       <div className="fixed left-0 right-0 top-0 z-50 flex h-10 items-center justify-between bg-gradient-to-b from-black/70 to-transparent px-3 sm:h-14 sm:px-4">
@@ -606,6 +645,19 @@ function FeedShell({
           </span>
           <button
             className="inline-flex h-8 items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 text-[0.7rem] font-bold text-white/85 backdrop-blur-md transition hover:border-white/30 hover:bg-white/15 active:scale-[0.98] sm:h-9 sm:px-3.5 sm:text-xs"
+            onClick={() => {
+              setSubmitError(null);
+              setSubmitStatus(null);
+              setIsSubmitOpen(true);
+            }}
+            type="button"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Submit URL</span>
+            <span className="sm:hidden">Submit</span>
+          </button>
+          <button
+            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 text-[0.7rem] font-bold text-white/85 backdrop-blur-md transition hover:border-white/30 hover:bg-white/15 active:scale-[0.98] sm:h-9 sm:px-3.5 sm:text-xs"
             onClick={() => window.location.assign("/onboarding")}
             type="button"
           >
@@ -617,6 +669,79 @@ function FeedShell({
         </div>
       </div>
       {children}
+      {isSubmitOpen ? (
+        <div className="fixed inset-0 z-[80] grid place-items-center bg-black/70 px-4 backdrop-blur-sm">
+          <form
+            className="w-full max-w-md rounded-2xl border border-white/10 bg-white p-5 text-[#10131f] shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+            onSubmit={handleSubmitOpportunity}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-[#64748b]">
+                  User-submitted source
+                </p>
+                <h2 className="mt-2 text-2xl font-black tracking-tight">
+                  Submit an opportunity URL
+                </h2>
+              </div>
+              <button
+                aria-label="Close submit URL modal"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#d1d9e2] text-[#64748b] transition hover:bg-[#f8fafc]"
+                onClick={() => setIsSubmitOpen(false)}
+                type="button"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <label className="mt-5 block">
+              <span className="text-xs font-bold uppercase tracking-[0.16em] text-[#64748b]">
+                Link
+              </span>
+              <input
+                className="mt-2 h-12 w-full rounded-xl border border-[#d1d9e2] bg-[#f8fafc] px-3 text-sm font-semibold outline-none transition focus:border-[#4f8cff] focus:ring-4 focus:ring-[#4f8cff]/15"
+                onChange={(event) => setSubmittedUrl(event.target.value)}
+                placeholder="https://..."
+                required
+                type="url"
+                value={submittedUrl}
+              />
+            </label>
+
+            <label className="mt-4 block">
+              <span className="text-xs font-bold uppercase tracking-[0.16em] text-[#64748b]">
+                Note optional
+              </span>
+              <textarea
+                className="mt-2 min-h-24 w-full resize-none rounded-xl border border-[#d1d9e2] bg-[#f8fafc] px-3 py-3 text-sm font-medium outline-none transition focus:border-[#4f8cff] focus:ring-4 focus:ring-[#4f8cff]/15"
+                onChange={(event) => setSubmitNote(event.target.value)}
+                placeholder="Anything we should know?"
+                value={submitNote}
+              />
+            </label>
+
+            {submitStatus ? (
+              <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700">
+                {submitStatus}
+              </p>
+            ) : null}
+
+            {submitError ? (
+              <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-bold text-red-700">
+                {submitError}
+              </p>
+            ) : null}
+
+            <button
+              className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#10131f] text-sm font-black text-white transition hover:bg-[#1f2937] active:scale-[0.98] disabled:cursor-wait disabled:opacity-70"
+              disabled={isSubmitting}
+              type="submit"
+            >
+              {isSubmitting ? "Saving..." : "Save URL"}
+            </button>
+          </form>
+        </div>
+      ) : null}
     </div>
   );
 }

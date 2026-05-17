@@ -197,6 +197,38 @@ app.delete("/api/actions", requireUser, async (c) => {
   });
 });
 
+app.post("/api/submitted-sources", requireUser, async (c) => {
+  const clerkUserId = c.get("clerkUserId");
+  const body = await c.req.json<{
+    url?: string;
+    note?: string | null;
+  }>();
+  const submittedUrl = normalizeSubmittedUrl(body.url);
+
+  if (!submittedUrl) {
+    return c.json({ error: "A valid opportunity URL is required" }, 400);
+  }
+
+  const id = await recordSourceReview(c.env, {
+    id: `user-${slugifyForId(`${clerkUserId}-${submittedUrl}`)}`,
+    submitted_url: submittedUrl,
+    canonical_url: submittedUrl,
+    source: "user-submitted",
+    title: null,
+    decision: "quarantine",
+    relevance_score: 0,
+    source_trust_score: 0,
+    parse_confidence: 0,
+    risk_flags: ["needs-review"],
+    notes: body.note?.trim()
+      ? `${body.note.trim()}\n\nSubmitted by: ${clerkUserId}`
+      : `Submitted by: ${clerkUserId}`,
+    raw_summary: "User-submitted opportunity URL awaiting review or scheduled scraping.",
+  });
+
+  return c.json({ id, url: submittedUrl });
+});
+
 app.post("/api/admin/ingest", async (c) => {
   const secret = c.req.header("x-admin-ingest-secret");
 
@@ -288,6 +320,29 @@ function isValidIngestSourceReview(
       review.source &&
       ["accept", "quarantine", "reject"].includes(review.decision),
   );
+}
+
+function normalizeSubmittedUrl(value: string | undefined) {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+
+  try {
+    const url = new URL(trimmed);
+    if (!["http:", "https:"].includes(url.protocol)) return null;
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function slugifyForId(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/https?:\/\//g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 96);
 }
 
 interface ProfilePayload {

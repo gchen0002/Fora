@@ -28,6 +28,8 @@ An opportunity or event link discovered and submitted by a Fora user. User-Submi
 
 For the MVP, User-Submitted Sources can be automatically rejected or quarantined when the adapter detects clear fake, spammy, inaccessible, expired, or unrelated content. Human approval should be reserved for uncertain or high-impact cases rather than every submitted link.
 
+For the hackathon prototype, User-Submitted Sources may be stored as quarantined links without immediate parsing. A future scheduled scraper can inspect this queue and promote accepted links into Opportunity Sources.
+
 ## Daily Stack
 
 A limited set of high-fit opportunities shown as a short daily ritual. The Daily Stack is not an infinite feed or generic directory.
