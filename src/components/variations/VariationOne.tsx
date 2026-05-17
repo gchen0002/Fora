@@ -20,6 +20,85 @@ const G = {
 
 const ease = [0.32, 0.72, 0, 1] as const;
 
+const SAMPLE_EVENTS = [
+  {
+    id: "venushacks",
+    title: "VENUS",
+    titleBreak: "HACKS",
+    subtitle: "Build The Future",
+    eventName: "VenusHacks 2026",
+    host: "WICS",
+    tags: ["✨ Beginner Friendly", "💸 Free", "✈️ Travel Support"],
+    month: "May",
+    date: "24",
+    fullDate: "Friday, May 24",
+    time: "6:00 PM to Sun 12:00 PM PDT",
+    guests: "500+ Hackers",
+    guestNames: "Alice, Bob & Charlie",
+    status: "Application Accepted",
+    statusDesc: "A confirmation email has been sent",
+    gradient: `linear-gradient(135deg, ${G.blue}, ${G.red}cc)`,
+    iconColor: G.green
+  },
+  {
+    id: "gracehopper",
+    title: "GRACE",
+    titleBreak: "HOPPER",
+    subtitle: "Celebration Grant",
+    eventName: "GHC 2026 Scholarship",
+    host: "AnitaB.org",
+    tags: ["🎓 Scholarship", "✈️ Travel Support", "👩‍💻 Women in Tech"],
+    month: "Oct",
+    date: "12",
+    fullDate: "Tuesday, Oct 12",
+    time: "All Day Event",
+    guests: "15,000+ Attendees",
+    guestNames: "Diana, Eva & Fay",
+    status: "Saved to Stack",
+    statusDesc: "Deadline approaching in 5 days",
+    gradient: `linear-gradient(135deg, ${G.green}, ${G.blue}cc)`,
+    iconColor: G.blue
+  },
+  {
+    id: "outintech",
+    title: "OUT IN",
+    titleBreak: "TECH",
+    subtitle: "Mentorship Program",
+    eventName: "Fall Mentorship Cohort",
+    host: "Out in Tech",
+    tags: ["🏳️‍🌈 LGBTQ+ Tech", "🤝 Mentorship", "💻 Remote"],
+    month: "Sep",
+    date: "01",
+    fullDate: "Monday, Sep 01",
+    time: "Remote / Flexible",
+    guests: "200+ Mentors",
+    guestNames: "George, Helen & Ian",
+    status: "Application Open",
+    statusDesc: "High match based on your goals",
+    gradient: `linear-gradient(135deg, ${G.red}, ${G.yellow}cc)`,
+    iconColor: G.red
+  },
+  {
+    id: "codepath",
+    title: "CODE",
+    titleBreak: "PATH",
+    subtitle: "Intro to iOS Dev",
+    eventName: "Fall 2026 Course",
+    host: "CodePath",
+    tags: ["✨ Beginner Friendly", "🏫 Course", "💸 Free"],
+    month: "Sep",
+    date: "15",
+    fullDate: "Tuesday, Sep 15",
+    time: "Weekly 6:00 PM",
+    guests: "1000+ Students",
+    guestNames: "Jack, Kelly & Liam",
+    status: "High Fit",
+    statusDesc: "Matches your interest in Mobile Dev",
+    gradient: `linear-gradient(135deg, ${G.yellow}, ${G.green}cc)`,
+    iconColor: G.yellow
+  }
+];
+
 export function VariationOne() {
   return (
     <div className="relative min-h-[100dvh] overflow-hidden bg-white font-sans text-[#202124] selection:bg-[#4285F4]/20">
@@ -211,6 +290,7 @@ function TypewriterHeading() {
 
 function RightVisual() {
   const phoneRef = useRef<HTMLDivElement>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     const el = phoneRef.current;
@@ -229,6 +309,13 @@ function RightVisual() {
     return () => cancelAnimationFrame(id);
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % SAMPLE_EVENTS.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9, y: 60 }}
@@ -237,117 +324,124 @@ function RightVisual() {
       className="relative flex w-full items-center justify-center"
     >
       {/* Soft circular backdrop */}
-      <div className="relative flex aspect-square w-full max-w-[500px] items-center justify-center rounded-full bg-[#f8f9fa] shadow-[0_0_0_1px_#e8eaed]">
+      <div className="relative flex aspect-square w-full max-w-[640px] items-center justify-center rounded-full bg-[#f8f9fa] shadow-[0_0_0_1px_#e8eaed]">
         {/* Subtle colored radials */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-full">
           <div
-            className="absolute -left-10 -top-10 h-[250px] w-[250px] rounded-full blur-[80px] opacity-[0.15]"
+            className="absolute -left-10 -top-10 h-[300px] w-[300px] rounded-full blur-[90px] opacity-[0.15]"
             style={{ background: G.blue }}
           />
           <div
-            className="absolute -right-10 top-10 h-[200px] w-[200px] rounded-full blur-[70px] opacity-[0.12]"
+            className="absolute -right-10 top-10 h-[250px] w-[250px] rounded-full blur-[80px] opacity-[0.12]"
             style={{ background: G.red }}
           />
           <div
-            className="absolute bottom-0 left-1/3 h-[200px] w-[200px] rounded-full blur-[70px] opacity-[0.12]"
+            className="absolute bottom-0 left-1/3 h-[250px] w-[250px] rounded-full blur-[80px] opacity-[0.12]"
             style={{ background: G.green }}
           />
         </div>
 
         {/* Phone Mockup */}
-        <div ref={phoneRef} className="relative z-10 h-[520px] w-[260px]">
-          <div className="h-full w-full rounded-[2.5rem] border border-[#dadce0] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.08)] overflow-hidden">
+        <div ref={phoneRef} className="relative z-10 h-[640px] w-[320px]">
+          <div className="h-full w-full rounded-[2.5rem] border border-[#dadce0] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.08)] overflow-hidden relative">
             {/* Notch */}
-            <div className="absolute left-1/2 top-2 z-20 h-5 w-20 -translate-x-1/2 rounded-full bg-[#202124]" />
+            <div className="absolute left-1/2 top-2 z-20 h-6 w-24 -translate-x-1/2 rounded-full bg-[#202124]" />
 
-            {/* Phone Screen */}
-            <div className="flex h-full w-full flex-col bg-white pt-10">
-              {/* Header image */}
-              <div className="px-3">
-                <div
-                  className="flex aspect-video w-full flex-col items-center justify-center rounded-xl overflow-hidden relative"
-                  style={{ background: `linear-gradient(135deg, ${G.blue}, ${G.red}cc)` }}
-                >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
-                    animate={{ x: ["-100%", "100%"] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "linear", repeatDelay: 2 }}
-                  />
-                  <h2 className="relative z-10 text-3xl font-black italic tracking-tighter text-white drop-shadow-sm text-center leading-tight">
-                    VENUS<br/>HACKS
-                  </h2>
-                  <p className="relative z-10 mt-1 text-[8px] font-bold uppercase tracking-widest text-white/80">
-                    Build The Future
-                  </p>
-                </div>
-              </div>
-
-              {/* Event Details */}
-              <div className="mt-3 flex flex-1 flex-col rounded-t-2xl border-t border-[#e8eaed] bg-white p-4">
-                <h3 className="text-base font-medium text-[#202124]">VenusHacks 2026</h3>
-                <p className="mt-1 flex items-center gap-1.5 text-[10px] text-[#5f6368]">
-                  <span className="inline-block h-3 w-3 rounded-full" style={{ background: G.blue }} />
-                  Hosted by WICS
-                </p>
-
-                <div className="mt-2.5 flex flex-wrap gap-1.5">
-                  <span className="rounded-full bg-[#f8f9fa] border border-[#e8eaed] px-2 py-0.5 text-[9px] font-medium text-[#5f6368]">✨ Beginner Friendly</span>
-                  <span className="rounded-full bg-[#f8f9fa] border border-[#e8eaed] px-2 py-0.5 text-[9px] font-medium text-[#5f6368]">💸 Free</span>
-                  <span className="rounded-full bg-[#f8f9fa] border border-[#e8eaed] px-2 py-0.5 text-[9px] font-medium text-[#5f6368]">✈️ Travel Support</span>
-                </div>
-
-                <div className="mt-4 space-y-3">
-                  <div className="flex gap-3">
-                    <div
-                      className="flex flex-col items-center justify-center rounded-lg px-2.5 py-1.5 text-center"
-                      style={{ background: `${G.blue}10` }}
-                    >
-                      <span className="text-[8px] font-semibold uppercase" style={{ color: G.blue }}>
-                        May
-                      </span>
-                      <span className="text-sm font-medium text-[#202124]">24</span>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-[#202124]">Friday, May 24</p>
-                      <p className="text-[10px] text-[#5f6368]">6:00 PM to Sun 12:00 PM PDT</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Guests */}
-                <div className="mt-auto mb-2 rounded-xl border border-[#e8eaed] p-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex -space-x-2">
-                      <div className="h-6 w-6 rounded-full border-2 border-white" style={{ background: G.blue }} />
-                      <div className="h-6 w-6 rounded-full border-2 border-white" style={{ background: G.red }} />
-                      <div className="h-6 w-6 rounded-full border-2 border-white" style={{ background: G.yellow }} />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-medium text-[#202124]">500+ Hackers</p>
-                      <p className="text-[9px] text-[#5f6368]">Alice, Bob & Charlie</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom notification */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 2, ease }}
-                className="absolute bottom-4 left-3 right-3 rounded-xl border border-[#e8eaed] bg-white p-3 shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
+            {/* Phone Screen Container for Scrolling */}
+            <div className="h-full w-full bg-white pt-12 overflow-hidden">
+              <motion.div 
+                className="flex flex-col w-full h-full"
+                animate={{ y: `-${currentIndex * 100}%` }}
+                transition={{ type: "spring", stiffness: 200, damping: 25 }}
               >
-                <div className="flex items-center gap-2">
-                  <div className="grid h-8 w-8 place-items-center rounded-full" style={{ background: `${G.green}15` }}>
-                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill={G.green}>
-                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                    </svg>
+                {SAMPLE_EVENTS.map((event) => (
+                  <div key={event.id} className="flex-shrink-0 w-full h-full flex flex-col relative pb-4">
+                    {/* Header image */}
+                    <div className="px-4">
+                      <div
+                        className="flex h-36 w-full flex-col items-center justify-center rounded-2xl overflow-hidden relative"
+                        style={{ background: event.gradient }}
+                      >
+                        <motion.div
+                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
+                          animate={{ x: ["-100%", "100%"] }}
+                          transition={{ duration: 3, repeat: Infinity, ease: "linear", repeatDelay: 2 }}
+                        />
+                        <h2 className="relative z-10 text-4xl font-black italic tracking-tighter text-white drop-shadow-sm text-center leading-tight">
+                          {event.title}<br/>{event.titleBreak}
+                        </h2>
+                        <p className="relative z-10 mt-1 text-[9px] font-bold uppercase tracking-widest text-white/80">
+                          {event.subtitle}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Event Details */}
+                    <div className="mt-4 flex flex-1 flex-col rounded-t-[1.5rem] border-t border-[#e8eaed] bg-white p-5">
+                      <h3 className="text-lg font-medium text-[#202124]">{event.eventName}</h3>
+                      <p className="mt-1 flex items-center gap-1.5 text-xs text-[#5f6368]">
+                        <span className="inline-block h-3.5 w-3.5 rounded-full" style={{ background: G.blue }} />
+                        Hosted by {event.host}
+                      </p>
+
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {event.tags.map((tag, i) => (
+                          <span key={i} className="rounded-full bg-[#f8f9fa] border border-[#e8eaed] px-2.5 py-1 text-[10px] font-medium text-[#5f6368]">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className="mt-5 space-y-3">
+                        <div className="flex gap-4">
+                          <div
+                            className="flex flex-col items-center justify-center rounded-xl px-3 py-2 text-center w-12"
+                            style={{ background: `${G.blue}10` }}
+                          >
+                            <span className="text-[10px] font-semibold uppercase" style={{ color: G.blue }}>
+                              {event.month}
+                            </span>
+                            <span className="text-base font-medium text-[#202124]">{event.date}</span>
+                          </div>
+                          <div className="flex flex-col justify-center">
+                            <p className="text-sm font-medium text-[#202124]">{event.fullDate}</p>
+                            <p className="text-xs text-[#5f6368] mt-0.5">{event.time}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Guests */}
+                      <div className="mt-auto mb-16 rounded-2xl border border-[#e8eaed] p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex -space-x-2">
+                            <div className="h-8 w-8 rounded-full border-2 border-white" style={{ background: G.blue }} />
+                            <div className="h-8 w-8 rounded-full border-2 border-white" style={{ background: G.red }} />
+                            <div className="h-8 w-8 rounded-full border-2 border-white" style={{ background: G.yellow }} />
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-[#202124]">{event.guests}</p>
+                            <p className="text-[10px] text-[#5f6368] mt-0.5">{event.guestNames}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom notification */}
+                    <div className="absolute bottom-6 left-4 right-4 rounded-xl border border-[#e8eaed] bg-white p-3.5 shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
+                      <div className="flex items-center gap-3">
+                        <div className="grid h-10 w-10 place-items-center rounded-full flex-shrink-0" style={{ background: `${event.iconColor}15` }}>
+                          <svg viewBox="0 0 24 24" className="h-5 w-5" fill={event.iconColor}>
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                          </svg>
+                        </div>
+                        <div className="overflow-hidden">
+                          <p className="text-sm font-medium text-[#202124] truncate">{event.status}</p>
+                          <p className="text-[10px] text-[#5f6368] mt-0.5 truncate">{event.statusDesc}</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-medium text-[#202124]">Application Accepted</p>
-                    <p className="text-[9px] text-[#5f6368]">A confirmation email has been sent</p>
-                  </div>
-                </div>
+                ))}
               </motion.div>
             </div>
           </div>
