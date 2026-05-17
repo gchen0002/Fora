@@ -454,13 +454,18 @@ function FeedShell({
         >
           <X className="h-6 w-6" />
         </button>
-        <div className="flex items-center gap-[3px]">
+        <button
+          aria-label="Open landing page"
+          className="flex items-center gap-[3px] rounded-full px-2 py-1 transition hover:bg-white/10"
+          onClick={() => navigateHome()}
+          type="button"
+        >
           <div className="h-2 w-2 rounded-full bg-[#4285F4]" />
           <div className="h-2 w-2 rounded-full bg-[#EA4335]" />
           <div className="h-2 w-2 rounded-full bg-[#FBBC05]" />
           <div className="h-2 w-2 rounded-full bg-[#34A853]" />
           <span className="ml-1.5 text-sm font-semibold text-white">fora</span>
-        </div>
+        </button>
         <div className="flex items-center gap-3">
           <span className="hidden text-xs font-semibold text-white/70 sm:inline">
             Productive Scroll
