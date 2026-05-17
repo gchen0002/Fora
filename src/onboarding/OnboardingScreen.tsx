@@ -160,16 +160,16 @@ export function OnboardingScreen() {
       const elapsed = (t - start) / 1000;
       // Fixed speed to maintain consistent animation regardless of active step
       // Increased from 0.15 to 0.225 (1.5x faster)
-      const speed = 0.225;
+      const speed = 0.225; 
       // Continuous loop for conveyor belt effect
       const gradientOffset = (elapsed * speed) % 1;
-
+      
       barRefs.current.forEach((el, index) => {
         if (!el) return;
         const bgPos = `${(index / 3 - gradientOffset * (4/3)) * 100}% 50%`;
         el.style.backgroundPosition = bgPos;
       });
-
+      
       id = requestAnimationFrame(frame);
     }
     id = requestAnimationFrame(frame);
@@ -319,44 +319,42 @@ export function OnboardingScreen() {
               }
             />
 
-            <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-[0.18em] text-[#5f6368]">
-                  Mileage
-                </span>
-                <div className="mt-2 grid grid-cols-4 gap-2">
-                  {mileageOptions.map((value) => (
-                    <SingleChoice
-                      isSelected={profile.mileageRange === value}
-                      key={value}
-                      label={`${value}`}
-                      onClick={() =>
-                        setProfile((current) => ({
-                          ...current,
-                          mileageRange: current.mileageRange === value ? null : value,
-                        }))
-                      }
-                    />
-                  ))}
-                </div>
-              </div>
+            <label className="inline-flex h-11 items-center gap-2 rounded-xl border border-[#dadce0] bg-white px-3">
+              <input
+                checked={profile.remotePreference === "remote"}
+                className="h-4 w-4 accent-[#202124]"
+                onChange={(event) =>
+                  setProfile((current) => ({
+                    ...current,
+                    remotePreference: event.target.checked ? "remote" : "any",
+                  }))
+                }
+                type="checkbox"
+              />
+              <span className="text-sm font-medium text-[#202124]">
+                Include remote first
+              </span>
+            </label>
 
-              <label className="flex min-h-[4.9rem] items-center gap-3 rounded-xl border border-[#dadce0] bg-white px-4">
-                <input
-                  checked={profile.remotePreference === "remote"}
-                  className="h-5 w-5 accent-[#202124]"
-                  onChange={(event) =>
-                    setProfile((current) => ({
-                      ...current,
-                      remotePreference: event.target.checked ? "remote" : "any",
-                    }))
-                  }
-                  type="checkbox"
-                />
-                <span className="text-sm font-medium text-[#202124]">
-                  Include remote first
-                </span>
-              </label>
+            <div>
+              <span className="text-xs font-bold uppercase tracking-[0.18em] text-[#5f6368]">
+                Mileage
+              </span>
+              <div className="mt-2 grid grid-cols-4 gap-2">
+                {mileageOptions.map((value) => (
+                  <SingleChoice
+                    isSelected={profile.mileageRange === value}
+                    key={value}
+                    label={`${value}`}
+                    onClick={() =>
+                      setProfile((current) => ({
+                        ...current,
+                        mileageRange: current.mileageRange === value ? null : value,
+                      }))
+                    }
+                  />
+                ))}
+              </div>
             </div>
           </div>
         ),
@@ -389,9 +387,10 @@ export function OnboardingScreen() {
     try {
       const token = await getToken();
       if (!token) throw new Error("Sign in again to refresh your session.");
-      const coordinates =
-        profile.latitude && profile.longitude
-          ? null
+      
+      const coordinates = 
+        (profile.latitude && profile.longitude) 
+          ? null 
           : await geocodeKnownLocation(profile.locationText);
 
       if (controller.signal.aborted) return;
@@ -450,7 +449,7 @@ export function OnboardingScreen() {
         <div className="mx-auto grid w-full max-w-[840px] grid-cols-4 gap-3">
           {steps.map((item, index) => {
             const isActive = index <= step;
-
+            
             return (
               <div
                 key={item.eyebrow}
