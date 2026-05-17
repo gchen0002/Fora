@@ -4,9 +4,11 @@ import { cors } from "hono/cors";
 import { requireUser } from "./auth";
 import {
   deleteStaleSourceOpportunities,
+  deleteUserAction,
   getCandidateOpportunities,
   getExploreOpportunities,
   getProfile,
+  getSavedOpportunityIds,
   recordSourceReview,
   recordUserAction,
   upsertOpportunity,
@@ -35,7 +37,7 @@ app.use(
       return origin;
     },
     allowHeaders: ["Authorization", "Content-Type", "x-admin-ingest-secret"],
-    allowMethods: ["GET", "POST", "PUT", "OPTIONS"],
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
   }),
 );
@@ -136,6 +138,37 @@ app.post("/api/actions", requireUser, async (c) => {
 
   return c.json({
     id: actionId,
+  });
+});
+
+app.get("/api/actions/saved", requireUser, async (c) => {
+  const opportunityIds = await getSavedOpportunityIds(c.env, c.get("clerkUserId"));
+
+  return c.json({
+    opportunityIds,
+  });
+});
+
+app.delete("/api/actions", requireUser, async (c) => {
+  const clerkUserId = c.get("clerkUserId");
+  const body = await c.req.json<{
+    opportunityId?: string;
+    action?: "save" | "dismiss" | "share" | "applied";
+  }>();
+
+  if (!body.opportunityId || !body.action) {
+    return c.json({ error: "opportunityId and action are required" }, 400);
+  }
+
+  const deleted = await deleteUserAction(
+    c.env,
+    clerkUserId,
+    body.opportunityId,
+    body.action,
+  );
+
+  return c.json({
+    deleted,
   });
 });
 

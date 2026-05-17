@@ -143,6 +143,17 @@ export async function recordUserAction(
 
   await env.DB.prepare(
     `
+      DELETE FROM user_opportunity_actions
+      WHERE clerk_user_id = ?
+        AND opportunity_id = ?
+        AND action = ?
+    `,
+  )
+    .bind(clerkUserId, opportunityId, action)
+    .run();
+
+  await env.DB.prepare(
+    `
       INSERT INTO user_opportunity_actions (
         id,
         clerk_user_id,
@@ -157,6 +168,41 @@ export async function recordUserAction(
     .run();
 
   return id;
+}
+
+export async function deleteUserAction(
+  env: Env,
+  clerkUserId: string,
+  opportunityId: string,
+  action: "save" | "dismiss" | "share" | "applied",
+) {
+  const result = await env.DB.prepare(
+    `
+      DELETE FROM user_opportunity_actions
+      WHERE clerk_user_id = ?
+        AND opportunity_id = ?
+        AND action = ?
+    `,
+  )
+    .bind(clerkUserId, opportunityId, action)
+    .run();
+
+  return result.meta.changes ?? 0;
+}
+
+export async function getSavedOpportunityIds(env: Env, clerkUserId: string) {
+  const result = await env.DB.prepare(
+    `
+      SELECT opportunity_id
+      FROM user_opportunity_actions
+      WHERE clerk_user_id = ? AND action = 'save'
+      ORDER BY created_at DESC
+    `,
+  )
+    .bind(clerkUserId)
+    .all<{ opportunity_id: string }>();
+
+  return result.results.map((row) => row.opportunity_id);
 }
 
 export async function deleteStaleSourceOpportunities(

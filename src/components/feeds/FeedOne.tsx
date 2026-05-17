@@ -9,10 +9,15 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import {
+  deleteOpportunityAction,
+  fetchSavedOpportunityIds,
+  recordOpportunityAction,
+} from "@/api/actions";
 import type { ApiStackOpportunity } from "@/api/daily-stack";
 import { fetchDailyStack, fetchExploreMore } from "@/api/daily-stack";
 import { cn } from "@/lib/utils";
@@ -133,6 +138,8 @@ export function FeedOne() {
   const [opportunities, setOpportunities] = useState<ApiStackOpportunity[]>([]);
   const [activeCategory, setActiveCategory] = useState("overall");
   const [saved, setSaved] = useState<Set<string>>(new Set());
+  const [pendingSaves, setPendingSaves] = useState<Set<string>>(new Set());
+  const [actionError, setActionError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -149,9 +156,10 @@ export function FeedOne() {
           throw new Error("Sign in again to refresh your session.");
         }
 
-        const [dailyResponse, exploreResponse] = await Promise.all([
+        const [dailyResponse, exploreResponse, savedResponse] = await Promise.all([
           fetchDailyStack(token),
           fetchExploreMore(token),
+          fetchSavedOpportunityIds(token),
         ]);
 
         if (!cancelled) {
@@ -161,6 +169,7 @@ export function FeedOne() {
               ...exploreResponse.opportunities,
             ]),
           );
+          setSaved(new Set(savedResponse.opportunityIds));
           setError(null);
         }
       } catch (cause) {
@@ -199,12 +208,48 @@ export function FeedOne() {
     [activeCategory, feedItems],
   );
 
-  function toggleSave(id: string) {
+  async function toggleSave(id: string) {
+    if (pendingSaves.has(id)) return;
+
+    const token = await getToken();
+
+    if (!token) {
+      setActionError("Sign in again to save this opportunity.");
+      return;
+    }
+
+    const wasSaved = saved.has(id);
+
+    setActionError(null);
+    setPendingSaves((previous) => new Set(previous).add(id));
     setSaved((previous) => {
       const next = new Set(previous);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
+
+    try {
+      if (wasSaved) {
+        await deleteOpportunityAction(token, id, "save");
+      } else {
+        await recordOpportunityAction(token, id, "save");
+      }
+    } catch (cause) {
+      setSaved((previous) => {
+        const next = new Set(previous);
+        wasSaved ? next.add(id) : next.delete(id);
+        return next;
+      });
+      setActionError(
+        cause instanceof Error ? cause.message : "Could not update saved item.",
+      );
+    } finally {
+      setPendingSaves((previous) => {
+        const next = new Set(previous);
+        next.delete(id);
+        return next;
+      });
+    }
   }
 
   if (isLoading) {
@@ -247,12 +292,18 @@ export function FeedOne() {
           categories={categories}
           onChange={setActiveCategory}
         />
+        {actionError ? (
+          <div className="fixed bottom-4 left-1/2 z-50 max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-full border border-white/12 bg-black/75 px-4 py-2 text-center text-xs font-semibold text-white shadow-2xl backdrop-blur-xl">
+            {actionError}
+          </div>
+        ) : null}
         {visibleItems.map((event, index) => (
           <ProductiveScrollCard
             event={event}
             index={index}
             isSaved={saved.has(event.id)}
             key={event.id}
+            isSavePending={pendingSaves.has(event.id)}
             onToggleSave={() => toggleSave(event.id)}
             total={visibleItems.length}
           />
@@ -298,12 +349,14 @@ function CategoryTabs({
 function ProductiveScrollCard({
   event,
   index,
+  isSavePending,
   isSaved,
   onToggleSave,
   total,
 }: {
   event: FeedItem;
   index: number;
+  isSavePending: boolean;
   isSaved: boolean;
   onToggleSave: () => void;
   total: number;
@@ -367,7 +420,7 @@ function ProductiveScrollCard({
 
           {/* Hero title */}
           <h1
-            className="max-w-[92vw] text-balance text-[clamp(2.1rem,10.5vw,3.2rem)] font-bold leading-[0.92] tracking-[-0.02em] sm:max-w-[13ch] sm:text-[4rem] md:max-w-[15ch] md:text-[3.8rem]"
+            className="max-w-[94vw] text-balance break-words text-[clamp(2.05rem,9vw,3.05rem)] font-bold leading-[0.94] tracking-[-0.02em] sm:max-w-[18ch] sm:text-[3.35rem] md:max-w-[20ch] md:text-[3.5rem]"
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
               textShadow: "0 4px 24px rgba(0,0,0,0.5), 0 1px 4px rgba(0,0,0,0.3)",
@@ -379,7 +432,7 @@ function ProductiveScrollCard({
 
           {/* Description */}
           <p
-            className="fora-line-clamp-2 mt-3 min-h-[2.3rem] max-w-[31ch] text-[0.82rem] font-medium leading-snug text-white/72 sm:mt-4 sm:min-h-[2.9rem] sm:max-w-[34ch] sm:text-[0.94rem] sm:leading-normal"
+            className="fora-line-clamp-3 mt-3 min-h-[2.3rem] max-w-[34ch] text-[0.82rem] font-medium leading-snug text-white/72 sm:mt-4 sm:min-h-[2.9rem] sm:max-w-[38ch] sm:text-[0.94rem] sm:leading-normal"
             title={event.description}
           >
             {event.description}
@@ -426,10 +479,11 @@ function ProductiveScrollCard({
             <div className="mt-2.5 flex flex-wrap gap-1.5 sm:mt-3">
               {event.tags.map((tag) => (
                 <span
-                  className="rounded-full bg-[#1e293b]/8 px-2 py-0.5 text-[0.62rem] font-semibold text-[#334155] sm:px-2.5 sm:py-1 sm:text-[0.68rem]"
+                  className="rounded-full border px-2.5 py-1 text-[0.62rem] font-bold text-[#172033] shadow-[0_6px_16px_rgba(15,23,42,0.06)] sm:px-3 sm:py-1.5 sm:text-[0.68rem]"
                   key={tag}
+                  style={getTagStyle(tag, event.style.accent)}
                 >
-                  {tag}
+                  {formatTagLabel(tag)}
                 </span>
               ))}
             </div>
@@ -455,11 +509,12 @@ function ProductiveScrollCard({
               <button
                 aria-label={isSaved ? "Remove saved opportunity" : "Save opportunity"}
                 className={cn(
-                  "grid h-12 w-12 place-items-center rounded-xl border transition active:scale-[0.97] sm:h-[3.2rem] sm:w-[3.2rem]",
+                  "grid h-12 w-12 place-items-center rounded-xl border transition active:scale-[0.97] disabled:cursor-wait disabled:opacity-70 sm:h-[3.2rem] sm:w-[3.2rem]",
                   isSaved
                     ? "border-[#10131f] bg-[#10131f] text-white"
                     : "border-[#d1d9e2] bg-[#f8fafc] text-[#334155]",
                 )}
+                disabled={isSavePending}
                 onClick={onToggleSave}
                 type="button"
               >
@@ -555,12 +610,7 @@ function InfoPill({ icon, label }: { icon: ReactNode; label: string }) {
 function toFeedItem(opportunity: ApiStackOpportunity, index: number) {
   const category = opportunity.category.toLowerCase();
   const style = categoryStyles[category] ?? defaultStyle;
-  const tags = compactUnique([
-    ...opportunity.matchReasons,
-    ...opportunity.accessibilityTags,
-    ...opportunity.topicTags,
-    ...opportunity.experienceLevelTags,
-  ]).slice(0, 5);
+  const tags = getDetailTags(opportunity, category).slice(0, 5);
 
   return {
     id: opportunity.id,
@@ -570,7 +620,7 @@ function toFeedItem(opportunity: ApiStackOpportunity, index: number) {
     category,
     date: formatDate(opportunity.deadline),
     decisionHeadline: getDecisionHeadline(opportunity, style.label),
-    instantRead: getInstantRead(opportunity, style.label),
+    instantRead: getInstantRead(opportunity),
     location: getLocationLabel(opportunity),
     match: opportunity.fitScore,
     imageKind: opportunity.imageKind,
@@ -618,7 +668,7 @@ function getDecisionHeadline(opportunity: ApiStackOpportunity, categoryLabel: st
   }
 
   if (opportunity.category === "scholarship") {
-    return opportunity.cost ?? "Funding opportunity";
+    return getScholarshipHeadline(opportunity.cost);
   }
 
   if (opportunity.category === "mentorship") {
@@ -629,12 +679,12 @@ function getDecisionHeadline(opportunity: ApiStackOpportunity, categoryLabel: st
     return opportunity.isRemote ? "Remote role" : "Early-career role";
   }
 
-  return `${categoryLabel} worth checking`;
+  return `${categoryLabel} fit`;
 }
 
-function getInstantRead(opportunity: ApiStackOpportunity, categoryLabel: string) {
+function getInstantRead(opportunity: ApiStackOpportunity) {
   const strongestReason = opportunity.matchReasons[0] ?? "high-fit";
-  return `${categoryLabel} - ${strongestReason}`;
+  return titleCase(strongestReason.replace(/-/g, " "));
 }
 
 function getLocationLabel(opportunity: ApiStackOpportunity) {
@@ -650,8 +700,118 @@ function getLocationLabel(opportunity: ApiStackOpportunity) {
 
 function getTrustCue(opportunity: ApiStackOpportunity, index: number) {
   const count = 18 + index * 7 + Math.round(opportunity.fitScore / 8);
-  const reason = opportunity.matchReasons[0] ?? "similar learners";
-  return `Saved by ${count} learners exploring ${reason}.`;
+  return `Saved by ${count} learners.`;
+}
+
+function getDetailTags(opportunity: ApiStackOpportunity, category: string) {
+  const redundantTags = new Set([
+    category,
+    categoryStyles[category]?.label.toLowerCase(),
+    "matches your goals",
+    "matches your support needs",
+  ]);
+
+  return compactUnique([
+    ...opportunity.accessibilityTags,
+    ...opportunity.topicTags,
+    ...opportunity.experienceLevelTags,
+  ]).filter((tag) => !redundantTags.has(tag.toLowerCase()));
+}
+
+function getScholarshipHeadline(cost: string | null) {
+  if (!cost) return "Funding available";
+
+  const normalized = cost.toLowerCase();
+
+  if (normalized.includes("scholarship") || normalized.includes("funding")) {
+    return "Funding available";
+  }
+
+  if (normalized.includes("free")) {
+    return "Free to apply";
+  }
+
+  return cost;
+}
+
+function formatTagLabel(tag: string) {
+  const labels: Record<string, string> = {
+    ai: "AI",
+    web: "Web",
+    free: "Free",
+    remote: "Remote",
+    "beginner-friendly": "Beginner Friendly",
+    "social-good": "Social Good",
+    "travel-support": "Travel Support",
+    "mentorship-included": "Mentorship Included",
+    "no-experience-required": "No Experience Needed",
+    "women-focused": "Women in Tech",
+    "low-income-friendly": "Funding Support",
+    "first-gen-friendly": "First-Gen Friendly",
+    "lgbtq-friendly": "LGBTQ+ Friendly",
+    "disability-friendly": "Disability Friendly",
+    "career-switcher": "Career Switchers",
+    "student-founder": "Student Founders",
+    "evening-weekend": "Evening/Weekend",
+    "fee-waived": "Fee Waived",
+    design: "Design",
+    data: "Data",
+    cybersecurity: "Cybersecurity",
+    hardware: "Hardware",
+    startup: "Startups",
+    "health-tech": "Health Tech",
+  };
+
+  return labels[tag.toLowerCase()] ?? titleCase(tag.replace(/-/g, " "));
+}
+
+function getTagStyle(tag: string, accent: string): CSSProperties {
+  const lower = tag.toLowerCase();
+  const palettes: Record<string, CSSProperties> = {
+    free: {
+      background: "#ecfdf3",
+      borderColor: "#bbf7d0",
+      color: "#047857",
+    },
+    remote: {
+      background: "#eff6ff",
+      borderColor: "#bfdbfe",
+      color: "#1d4ed8",
+    },
+    ai: {
+      background: "#f5f3ff",
+      borderColor: "#ddd6fe",
+      color: "#6d28d9",
+    },
+    "social-good": {
+      background: "#fff7ed",
+      borderColor: "#fed7aa",
+      color: "#c2410c",
+    },
+    "beginner-friendly": {
+      background: "#f0fdf4",
+      borderColor: "#bbf7d0",
+      color: "#15803d",
+    },
+    "travel-support": {
+      background: "#fefce8",
+      borderColor: "#fde68a",
+      color: "#a16207",
+    },
+    web: {
+      background: "#f0f9ff",
+      borderColor: "#bae6fd",
+      color: "#0369a1",
+    },
+  };
+
+  return (
+    palettes[lower] ?? {
+      background: `${accent}12`,
+      borderColor: `${accent}38`,
+      color: "#172033",
+    }
+  );
 }
 
 function formatDate(value: string | null) {
