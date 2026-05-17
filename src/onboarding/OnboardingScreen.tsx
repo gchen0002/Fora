@@ -350,87 +350,86 @@ export function OnboardingScreen() {
 
   return (
     <OnboardingShell>
-      <div className="mx-auto grid min-h-[calc(100dvh-4rem)] w-full max-w-7xl items-center gap-12 px-6 py-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:px-24">
-        <aside className="flex flex-col justify-center">
-          <div className="flex items-center gap-2 text-sm font-medium text-[#5f6368]">
-            <BrandDots size="sm" />
-            profile onboarding
-          </div>
-          <h1 className="mt-6 max-w-[680px] text-balance text-[4rem] font-normal leading-[1.05] tracking-tight text-[#202124] sm:text-[5rem] lg:text-[6.5rem]">
-            Build your first stack.
-          </h1>
-          <p className="mt-8 max-w-[500px] text-lg font-normal leading-relaxed text-[#5f6368] sm:text-xl">
-            Fora uses this private profile to rank opportunities. Skip anything
-            personal; the stack still works.
-          </p>
-          <div className="mt-8 grid max-w-[220px] grid-cols-4 gap-2">
-            {steps.map((item, index) => (
-              <div
-                className={cn(
-                  "h-2 rounded-full transition-colors",
-                  index <= step ? "bg-[#CDB4DB]" : "bg-[#e8eaed]",
-                )}
-                key={item.eyebrow}
-              />
-            ))}
-          </div>
-        </aside>
-
-        <main>
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#8a8f98]">
-            {currentStep.eyebrow}
-          </p>
-          <h2 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-[#202124] sm:text-4xl">
-            {currentStep.title}
-          </h2>
-          <p className="mt-3 max-w-xl text-sm font-medium leading-6 text-[#5f6368]">
-            {currentStep.body}
-          </p>
-
-          <div className="mt-8">{currentStep.content}</div>
-
-          {error ? (
-            <p className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
-              {error}
-            </p>
-          ) : null}
-
-          <div className="mt-8 flex items-center justify-between gap-3">
-            <button
+      <div className="mx-auto flex min-h-[calc(100dvh-4rem)] w-full max-w-6xl flex-col px-6 py-10 lg:px-24">
+        <div className="mx-auto grid w-full max-w-[840px] grid-cols-4 gap-3">
+          {steps.map((item, index) => (
+            <div
               className={cn(
-                "inline-flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-medium text-[#5f6368] transition active:scale-[0.98]",
-                canGoBack ? "hover:bg-[#f8f9fa]" : "pointer-events-none opacity-0",
+                "h-3 rounded-full transition-colors",
+                index <= step ? "bg-[#CDB4DB]" : "bg-[#e8eaed]",
               )}
-              onClick={() => setStep((value) => Math.max(value - 1, 0))}
-              type="button"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Back
-            </button>
+              key={item.eyebrow}
+            />
+          ))}
+        </div>
 
-            {canContinue ? (
+        <div className="grid flex-1 items-center pt-10">
+          <main className="mx-auto w-full max-w-[640px]">
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#8a8f98]">
+              {currentStep.eyebrow}
+            </p>
+            <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-[#202124] sm:text-4xl">
+              {currentStep.title}
+            </h1>
+            <p className="mt-3 max-w-xl text-sm font-medium leading-6 text-[#5f6368]">
+              {currentStep.body}
+            </p>
+
+            <div className="mt-8">{currentStep.content}</div>
+
+            {error ? (
+              <p className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+                {error}
+              </p>
+            ) : null}
+
+            <div className="mt-8 flex items-center justify-between gap-3">
               <button
-                className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#CDB4DB] px-6 text-sm font-medium text-[#202124] shadow-[0_4px_14px_rgba(205,180,219,0.38)] transition hover:shadow-lg active:scale-[0.98]"
-                onClick={() => setStep((value) => Math.min(value + 1, steps.length - 1))}
+                className={cn(
+                  "inline-flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-medium text-[#5f6368] transition active:scale-[0.98]",
+                  canGoBack ? "hover:bg-[#f8f9fa]" : "pointer-events-none opacity-0",
+                )}
+                onClick={() => setStep((value) => Math.max(value - 1, 0))}
                 type="button"
               >
-                Continue
-                <ArrowRight className="h-4 w-4" />
+                <ChevronLeft className="h-4 w-4" />
+                Back
               </button>
-            ) : (
-              <button
-                className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#CDB4DB] px-6 text-sm font-medium text-[#202124] shadow-[0_4px_14px_rgba(205,180,219,0.38)] transition hover:shadow-lg active:scale-[0.98] disabled:opacity-70"
-                disabled={isSaving}
-                onClick={finishOnboarding}
-                type="button"
-              >
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                Build my stack
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        </main>
+
+              <div className="flex items-center gap-3">
+                <button
+                  className="inline-flex h-11 items-center rounded-xl border border-[#dadce0] px-5 text-sm font-medium text-[#5f6368] transition hover:bg-[#f8f9fa] active:scale-[0.98] disabled:opacity-70"
+                  disabled={isSaving}
+                  onClick={finishOnboarding}
+                  type="button"
+                >
+                  Skip
+                </button>
+                {canContinue ? (
+                  <button
+                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#CDB4DB] px-6 text-sm font-medium text-[#202124] shadow-[0_4px_14px_rgba(205,180,219,0.38)] transition hover:shadow-lg active:scale-[0.98]"
+                    onClick={() => setStep((value) => Math.min(value + 1, steps.length - 1))}
+                    type="button"
+                  >
+                    Continue
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <button
+                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#CDB4DB] px-6 text-sm font-medium text-[#202124] shadow-[0_4px_14px_rgba(205,180,219,0.38)] transition hover:shadow-lg active:scale-[0.98] disabled:opacity-70"
+                    disabled={isSaving}
+                    onClick={finishOnboarding}
+                    type="button"
+                  >
+                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                    Build my stack
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </main>
+        </div>
       </div>
     </OnboardingShell>
   );

@@ -5,6 +5,72 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
+/* ── Spectrum animation keyframes (injected once) ── */
+const SPECTRUM_STYLE_ID = "fora-spectrum-styles";
+if (typeof document !== "undefined" && !document.getElementById(SPECTRUM_STYLE_ID)) {
+  const style = document.createElement("style");
+  style.id = SPECTRUM_STYLE_ID;
+  style.textContent = `
+    @keyframes spectrumShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes spectrumShiftReverse {
+      0%   { background-position: 100% 50%; }
+      50%  { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+    .fora-spectrum-text {
+      background: linear-gradient(
+        90deg,
+        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB,
+        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB
+      );
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: spectrumShift 4s ease infinite;
+    }
+    .fora-spectrum-btn-nav {
+      background: linear-gradient(
+        90deg,
+        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB,
+        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB
+      ) !important;
+      background-size: 300% 100% !important;
+      -webkit-background-clip: text !important;
+      background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      animation: spectrumShift 3s ease infinite !important;
+      border: 1.5px solid #e8eaed !important;
+    }
+    .fora-spectrum-btn-nav:hover {
+      border-color: #CDB4DB !important;
+      box-shadow: 0 2px 12px rgba(205,180,219,0.25) !important;
+    }
+    .fora-spectrum-btn-hero {
+      background: linear-gradient(
+        90deg,
+        #B2C9AB, #F4F1DE, #FFB5A7, #CDB4DB,
+        #B2C9AB, #F4F1DE, #FFB5A7, #CDB4DB
+      ) !important;
+      background-size: 300% 100% !important;
+      -webkit-background-clip: text !important;
+      background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      animation: spectrumShiftReverse 6s ease infinite !important;
+      border: 1.5px solid #e8eaed !important;
+    }
+    .fora-spectrum-btn-hero:hover {
+      border-color: #B2C9AB !important;
+      box-shadow: 0 4px 18px rgba(178,201,171,0.3) !important;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 const G = {
   blue: "#CDB4DB", // Lavender
   red: "#FFB5A7", // Warm Peach
@@ -129,7 +195,7 @@ function Nav() {
           <div className="h-[10px] w-[10px] rounded-full" style={{ background: G.yellow }} />
           <div className="h-[10px] w-[10px] rounded-full" style={{ background: G.green }} />
         </div>
-        <span className="text-lg font-medium tracking-tight text-[#202124]">fora</span>
+        <span className="fora-spectrum-text text-lg font-medium tracking-tight">fora</span>
       </div>
 
       <div className="flex items-center gap-6 text-[13px] font-normal text-[#5f6368]">
@@ -141,9 +207,8 @@ function Nav() {
         </a>
         {!isLoaded ? (
           <button
-            className="rounded px-6 py-2 text-sm font-medium text-[#202124] opacity-70"
+            className="fora-spectrum-btn-nav rounded-lg bg-white px-6 py-2 text-sm font-semibold opacity-70"
             disabled
-            style={{ background: G.blue }}
             type="button"
           >
             Loading
@@ -152,8 +217,7 @@ function Nav() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate("/feed")}
-              className="rounded px-6 py-2 text-sm font-medium text-[#202124] transition-all hover:shadow-md active:scale-[0.98]"
-              style={{ background: G.blue }}
+              className="fora-spectrum-btn-nav rounded-lg bg-white px-6 py-2 text-sm font-semibold transition-all active:scale-[0.98]"
               type="button"
             >
               Open feed
@@ -163,8 +227,7 @@ function Nav() {
         ) : (
           <SignInButton mode="modal" forceRedirectUrl="/feed">
             <button
-              className="rounded px-6 py-2 text-sm font-medium text-[#202124] transition-all hover:shadow-md active:scale-[0.98]"
-              style={{ background: G.blue }}
+              className="fora-spectrum-btn-nav rounded-lg bg-white px-6 py-2 text-sm font-semibold transition-all active:scale-[0.98]"
               type="button"
             >
               Sign in
@@ -208,22 +271,7 @@ function LeftCopy() {
       animate="visible"
       variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.12 } } }}
     >
-      <motion.div
-        variants={{
-          hidden: { opacity: 0, y: 20, filter: "blur(8px)" },
-          visible: { opacity: 1, y: 0, filter: "blur(0px)" },
-        }}
-        transition={{ duration: 0.9, ease }}
-        className="flex items-center gap-2 text-sm font-medium text-[#5f6368]"
-      >
-        <div className="flex items-center gap-[3px]">
-          <div className="h-[6px] w-[6px] rounded-full" style={{ background: G.blue }} />
-          <div className="h-[6px] w-[6px] rounded-full" style={{ background: G.red }} />
-          <div className="h-[6px] w-[6px] rounded-full" style={{ background: G.yellow }} />
-          <div className="h-[6px] w-[6px] rounded-full" style={{ background: G.green }} />
-        </div>
-        fora
-      </motion.div>
+      {/* Small fora badge removed */}
 
       <TypewriterHeading />
 
@@ -242,18 +290,16 @@ function LeftCopy() {
       >
         {!isLoaded ? (
           <button
-            className="flex h-11 items-center gap-2 rounded-xl px-6 text-[14px] font-medium text-[#202124] opacity-70"
+            className="fora-spectrum-btn-hero flex h-11 items-center gap-2 rounded-xl bg-white px-6 text-[15px] font-semibold opacity-70"
             disabled
-            style={{ background: G.blue, boxShadow: `0 4px 14px ${G.blue}60` }}
             type="button"
           >
             Loading
           </button>
         ) : isSignedIn ? (
           <button
-            className="flex h-11 items-center gap-2 rounded-xl px-6 text-[14px] font-medium text-[#202124] transition-all hover:shadow-lg active:scale-[0.98]"
+            className="fora-spectrum-btn-hero flex h-11 items-center gap-2 rounded-xl bg-white px-6 text-[15px] font-semibold transition-all active:scale-[0.98]"
             onClick={() => navigate("/feed")}
-            style={{ background: G.blue, boxShadow: `0 4px 14px ${G.blue}60` }}
             type="button"
           >
             Open your feed
@@ -261,8 +307,7 @@ function LeftCopy() {
         ) : (
           <SignInButton mode="modal" forceRedirectUrl="/feed">
             <button
-              className="flex h-11 items-center gap-2 rounded-xl px-6 text-[14px] font-medium text-[#202124] transition-all hover:shadow-lg active:scale-[0.98]"
-              style={{ background: G.blue, boxShadow: `0 4px 14px ${G.blue}60` }}
+              className="fora-spectrum-btn-hero flex h-11 items-center gap-2 rounded-xl bg-white px-6 text-[15px] font-semibold transition-all active:scale-[0.98]"
               type="button"
             >
               Start exploring
