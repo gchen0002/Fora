@@ -58,13 +58,14 @@ function ProfileGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
 
     async function checkProfile() {
       try {
         const token = await getToken();
         if (!token) throw new Error("Sign in again to refresh your session.");
 
-        const response = await fetchProfile(token);
+        const response = await fetchProfile(token, controller.signal);
 
         if (cancelled) return;
         if (!response.profileComplete) {
@@ -89,6 +90,7 @@ function ProfileGate({ children }: { children: ReactNode }) {
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [getToken, navigate]);
 

@@ -12,7 +12,9 @@ function isLoopbackApiUrl(value: string) {
 }
 
 function getApiBaseUrl() {
-  if (!configuredApiBaseUrl) return "";
+  if (!configuredApiBaseUrl) {
+    return isBrowserOnLocalhost() ? "" : productionApiBaseUrl;
+  }
 
   if (!isBrowserOnLocalhost() && isLoopbackApiUrl(configuredApiBaseUrl)) {
     return productionApiBaseUrl;
