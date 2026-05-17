@@ -6,21 +6,21 @@
  * Apple/Mac-style frosted Sign In button.
  */
 import { motion } from "framer-motion";
-import { ArrowRight, Megaphone, Sparkles } from "lucide-react";
+import { ArrowRight, Megaphone, Sparkles, Heart } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const G = {
-  blue: "#4285F4",
-  red: "#EA4335",
-  yellow: "#FBBC05",
-  green: "#34A853",
+  blue: "#CDB4DB", // Lavender
+  red: "#FFB5A7", // Warm Peach
+  yellow: "#F4F1DE", // Soft Cream
+  green: "#B2C9AB", // Sage Green
 } as const;
 
 const ease = [0.32, 0.72, 0, 1] as const;
 
-export function VariationFive() {
+export function VariationOne() {
   return (
     <div className="relative min-h-[100dvh] overflow-hidden bg-white font-sans text-[#202124] selection:bg-[#4285F4]/20">
       <Nav />
@@ -129,7 +129,7 @@ function LeftCopy() {
         transition={{ duration: 0.7, ease }}
         className="mt-8 max-w-[500px] text-lg leading-relaxed text-[#5f6368] sm:text-xl lg:text-2xl"
       >
-        Set up an event page, invite friends and sell tickets. Host a memorable event today.
+        Spend 5 minutes a day discovering hackathons, scholarships, and communities that actually fit your goals. No insider network required.
       </motion.p>
 
       <motion.div
@@ -138,12 +138,12 @@ function LeftCopy() {
         className="mt-8 flex items-center gap-3"
       >
         <button
-          className="flex h-11 items-center gap-2 rounded px-6 text-[14px] font-medium text-white transition-all hover:shadow-lg active:scale-[0.98]"
-          style={{ background: G.blue, boxShadow: `0 1px 3px ${G.blue}40` }}
+          className="flex h-11 items-center gap-2 rounded-xl px-6 text-[14px] font-medium text-[#202124] transition-all hover:shadow-lg active:scale-[0.98]"
+          style={{ background: G.blue, boxShadow: `0 4px 14px ${G.blue}60` }}
         >
-          Create Your First Event
+          Start Exploring
         </button>
-        <button className="flex h-11 items-center gap-2 rounded border border-[#dadce0] px-6 text-[14px] font-medium text-[#1a73e8] transition-all hover:bg-[#f8f9fa] active:scale-[0.98]">
+        <button className="flex h-11 items-center gap-2 rounded-xl border border-[#dadce0] px-6 text-[14px] font-medium text-[#5f6368] transition-all hover:bg-[#f8f9fa] active:scale-[0.98]">
           Learn more
         </button>
       </motion.div>
@@ -153,7 +153,7 @@ function LeftCopy() {
 
 function TypewriterHeading() {
   const [displayedText, setDisplayedText] = useState("");
-  const fullText = "Delightful\nevents\nstart here.";
+  const fullText = "Find your\nplace in\ntech.";
   
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout>;
@@ -290,6 +290,12 @@ function RightVisual() {
                   Hosted by WICS
                 </p>
 
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                  <span className="rounded-full bg-[#f8f9fa] border border-[#e8eaed] px-2 py-0.5 text-[9px] font-medium text-[#5f6368]">✨ Beginner Friendly</span>
+                  <span className="rounded-full bg-[#f8f9fa] border border-[#e8eaed] px-2 py-0.5 text-[9px] font-medium text-[#5f6368]">💸 Free</span>
+                  <span className="rounded-full bg-[#f8f9fa] border border-[#e8eaed] px-2 py-0.5 text-[9px] font-medium text-[#5f6368]">✈️ Travel Support</span>
+                </div>
+
                 <div className="mt-4 space-y-3">
                   <div className="flex gap-3">
                     <div
@@ -360,45 +366,30 @@ function RightVisual() {
           <div className="text-2xl font-medium text-[#202124]">24</div>
         </motion.div>
 
-        {/* Megaphone — Blue */}
+        {/* Heart icon */}
         <motion.div
           animate={{ y: [4, -8, 4], rotate: [12, 16, 12] }}
           transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute left-4 top-1/2 z-20 grid h-14 w-14 place-items-center rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-[#e8eaed]"
-          style={{ background: G.blue }}
+          className="absolute left-4 top-1/2 z-20 grid h-14 w-14 place-items-center rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.08)] border border-white/60 bg-white/40 backdrop-blur-md"
         >
-          <Megaphone className="h-7 w-7 text-white" />
+          <Heart className="h-6 w-6" style={{ color: G.red, fill: G.red }} />
         </motion.div>
 
-        {/* Speaker L — Yellow */}
+        {/* Soft Orb 1 — Yellow */}
         <motion.div
           animate={{ y: [3, -5, 3] }}
           transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-12 left-10 z-20 grid h-20 w-16 -rotate-12 place-items-center rounded-xl border border-[#e8eaed] shadow-[0_4px_20px_rgba(0,0,0,0.1)]"
-          style={{ background: G.yellow }}
-        >
-          <div className="h-8 w-8 rounded-full bg-white/30 shadow-inner flex items-center justify-center">
-            <div className="h-3 w-3 rounded-full bg-white/50" />
-          </div>
-          <div className="absolute bottom-3 h-4 w-4 rounded-full bg-white/30 shadow-inner flex items-center justify-center">
-            <div className="h-1.5 w-1.5 rounded-full bg-white/50" />
-          </div>
-        </motion.div>
+          className="absolute bottom-12 left-10 z-20 h-20 w-20 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.1)] backdrop-blur-md border border-white/40"
+          style={{ background: `linear-gradient(135deg, ${G.yellow}99, ${G.red}66)` }}
+        />
 
-        {/* Speaker R — Green */}
+        {/* Soft Orb 2 — Green */}
         <motion.div
           animate={{ y: [-4, 6, -4] }}
           transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-16 right-4 z-20 grid h-20 w-16 rotate-12 place-items-center rounded-xl border border-[#e8eaed] shadow-[0_4px_20px_rgba(0,0,0,0.1)]"
-          style={{ background: G.green }}
-        >
-          <div className="h-8 w-8 rounded-full bg-white/30 shadow-inner flex items-center justify-center">
-            <div className="h-3 w-3 rounded-full bg-white/50" />
-          </div>
-          <div className="absolute bottom-3 h-4 w-4 rounded-full bg-white/30 shadow-inner flex items-center justify-center">
-            <div className="h-1.5 w-1.5 rounded-full bg-white/50" />
-          </div>
-        </motion.div>
+          className="absolute bottom-16 right-4 z-20 h-16 w-16 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.1)] backdrop-blur-md border border-white/40"
+          style={{ background: `linear-gradient(135deg, ${G.green}99, ${G.blue}66)` }}
+        />
 
         {/* Star — Yellow */}
         <motion.div
