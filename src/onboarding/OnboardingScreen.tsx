@@ -5,7 +5,6 @@ import {
   ChevronLeft,
   Loader2,
   MapPin,
-  Sparkles,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -176,11 +175,11 @@ export function OnboardingScreen() {
         content: (
           <div className="space-y-6">
             <label className="block">
-              <span className="text-xs font-black uppercase tracking-[0.18em] text-[#64748b]">
+              <span className="text-xs font-bold uppercase tracking-[0.18em] text-[#5f6368]">
                 Display name
               </span>
               <input
-                className="mt-2 h-12 w-full rounded-2xl border border-[#d7deea] bg-white px-4 text-sm font-bold text-[#111827] outline-none transition focus:border-[#3f6df6]"
+                className="mt-2 h-12 w-full rounded-xl border border-[#dadce0] bg-white px-4 text-sm font-medium text-[#202124] outline-none transition focus:border-[#CDB4DB] focus:ring-4 focus:ring-[#CDB4DB]/20"
                 onChange={(event) =>
                   setProfile((current) => ({
                     ...current,
@@ -193,7 +192,7 @@ export function OnboardingScreen() {
             </label>
 
             <div>
-              <span className="text-xs font-black uppercase tracking-[0.18em] text-[#64748b]">
+              <span className="text-xs font-bold uppercase tracking-[0.18em] text-[#5f6368]">
                 Experience
               </span>
               <div className="mt-2 grid gap-2 sm:grid-cols-3">
@@ -214,7 +213,7 @@ export function OnboardingScreen() {
             </div>
 
             <div>
-              <span className="text-xs font-black uppercase tracking-[0.18em] text-[#64748b]">
+              <span className="text-xs font-bold uppercase tracking-[0.18em] text-[#5f6368]">
                 Interests
               </span>
               <ChipGrid
@@ -225,12 +224,12 @@ export function OnboardingScreen() {
             </div>
 
             <label className="block">
-              <span className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-[#64748b]">
+              <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-[#5f6368]">
                 <MapPin className="h-3.5 w-3.5" />
                 Primary location
               </span>
               <input
-                className="mt-2 h-12 w-full rounded-2xl border border-[#d7deea] bg-white px-4 text-sm font-bold text-[#111827] outline-none transition focus:border-[#3f6df6]"
+                className="mt-2 h-12 w-full rounded-xl border border-[#dadce0] bg-white px-4 text-sm font-medium text-[#202124] outline-none transition focus:border-[#CDB4DB] focus:ring-4 focus:ring-[#CDB4DB]/20"
                 onChange={(event) =>
                   setProfile((current) => ({
                     ...current,
@@ -240,14 +239,14 @@ export function OnboardingScreen() {
                 placeholder="City, state or remote"
                 value={profile.locationText ?? ""}
               />
-              <p className="mt-2 text-xs font-semibold leading-5 text-[#64748b]">
+              <p className="mt-2 text-xs font-medium leading-5 text-[#5f6368]">
                 Used only to estimate miles away and sort nearby opportunities.
               </p>
             </label>
 
             <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
               <div>
-                <span className="text-xs font-black uppercase tracking-[0.18em] text-[#64748b]">
+                <span className="text-xs font-bold uppercase tracking-[0.18em] text-[#5f6368]">
                   Mileage
                 </span>
                 <div className="mt-2 grid grid-cols-4 gap-2">
@@ -267,10 +266,10 @@ export function OnboardingScreen() {
                 </div>
               </div>
 
-              <label className="flex min-h-[4.9rem] items-center gap-3 rounded-2xl border border-[#d7deea] bg-white px-4">
+              <label className="flex min-h-[4.9rem] items-center gap-3 rounded-xl border border-[#dadce0] bg-white px-4">
                 <input
                   checked={profile.remotePreference === "remote"}
-                  className="h-5 w-5 accent-[#3f6df6]"
+                  className="h-5 w-5 accent-[#202124]"
                   onChange={(event) =>
                     setProfile((current) => ({
                       ...current,
@@ -279,7 +278,7 @@ export function OnboardingScreen() {
                   }
                   type="checkbox"
                 />
-                <span className="text-sm font-black text-[#111827]">
+                <span className="text-sm font-medium text-[#202124]">
                   Include remote first
                 </span>
               </label>
@@ -339,8 +338,8 @@ export function OnboardingScreen() {
       <OnboardingShell>
         <div className="grid min-h-[60dvh] place-items-center text-center">
           <div>
-            <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#3f6df6]" />
-            <p className="mt-4 text-sm font-bold text-[#64748b]">
+            <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#CDB4DB]" />
+            <p className="mt-4 text-sm font-medium text-[#5f6368]">
               Setting up your quiz
             </p>
           </div>
@@ -351,25 +350,25 @@ export function OnboardingScreen() {
 
   return (
     <OnboardingShell>
-      <div className="mx-auto grid min-h-[calc(100dvh-4rem)] w-full max-w-6xl items-center gap-8 px-4 py-6 md:grid-cols-[0.8fr_1.2fr] md:px-8">
-        <aside className="rounded-[2rem] bg-[#101827] p-6 text-white shadow-[0_24px_80px_rgba(15,23,42,0.2)] md:min-h-[34rem] md:p-8">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-white/70">
-            <Sparkles className="h-3.5 w-3.5 text-[#f9c74f]" />
-            Profile Onboarding
+      <div className="mx-auto grid min-h-[calc(100dvh-4rem)] w-full max-w-7xl items-center gap-12 px-6 py-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:px-24">
+        <aside className="flex flex-col justify-center">
+          <div className="flex items-center gap-2 text-sm font-medium text-[#5f6368]">
+            <BrandDots size="sm" />
+            profile onboarding
           </div>
-          <h1 className="mt-8 max-w-[8ch] text-5xl font-black leading-[0.95] tracking-[-0.03em] sm:text-6xl">
+          <h1 className="mt-6 max-w-[680px] text-balance text-[4rem] font-normal leading-[1.05] tracking-tight text-[#202124] sm:text-[5rem] lg:text-[6.5rem]">
             Build your first stack.
           </h1>
-          <p className="mt-5 max-w-sm text-sm font-semibold leading-6 text-white/62">
+          <p className="mt-8 max-w-[500px] text-lg font-normal leading-relaxed text-[#5f6368] sm:text-xl">
             Fora uses this private profile to rank opportunities. Skip anything
             personal; the stack still works.
           </p>
-          <div className="mt-8 grid grid-cols-4 gap-2">
+          <div className="mt-8 grid max-w-[220px] grid-cols-4 gap-2">
             {steps.map((item, index) => (
               <div
                 className={cn(
-                  "h-2 rounded-full",
-                  index <= step ? "bg-[#3f6df6]" : "bg-white/14",
+                  "h-2 rounded-full transition-colors",
+                  index <= step ? "bg-[#CDB4DB]" : "bg-[#e8eaed]",
                 )}
                 key={item.eyebrow}
               />
@@ -377,14 +376,14 @@ export function OnboardingScreen() {
           </div>
         </aside>
 
-        <main className="rounded-[2rem] border border-[#dfe5ef] bg-[#f8fafc] p-5 shadow-[0_20px_70px_rgba(15,23,42,0.08)] sm:p-8">
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-[#3f6df6]">
+        <main>
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#8a8f98]">
             {currentStep.eyebrow}
           </p>
-          <h2 className="mt-3 text-3xl font-black leading-tight tracking-[-0.02em] text-[#111827] sm:text-5xl">
+          <h2 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-[#202124] sm:text-4xl">
             {currentStep.title}
           </h2>
-          <p className="mt-3 max-w-xl text-sm font-semibold leading-6 text-[#64748b]">
+          <p className="mt-3 max-w-xl text-sm font-medium leading-6 text-[#5f6368]">
             {currentStep.body}
           </p>
 
@@ -399,8 +398,8 @@ export function OnboardingScreen() {
           <div className="mt-8 flex items-center justify-between gap-3">
             <button
               className={cn(
-                "inline-flex h-12 items-center gap-2 rounded-full px-5 text-sm font-black text-[#475569] transition",
-                canGoBack ? "hover:bg-white" : "pointer-events-none opacity-0",
+                "inline-flex h-11 items-center gap-2 rounded-xl px-5 text-sm font-medium text-[#5f6368] transition active:scale-[0.98]",
+                canGoBack ? "hover:bg-[#f8f9fa]" : "pointer-events-none opacity-0",
               )}
               onClick={() => setStep((value) => Math.max(value - 1, 0))}
               type="button"
@@ -411,7 +410,7 @@ export function OnboardingScreen() {
 
             {canContinue ? (
               <button
-                className="inline-flex h-12 items-center gap-2 rounded-full bg-[#3f6df6] px-6 text-sm font-black text-white shadow-[0_16px_34px_rgba(63,109,246,0.28)] transition active:scale-[0.98]"
+                className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#CDB4DB] px-6 text-sm font-medium text-[#202124] shadow-[0_4px_14px_rgba(205,180,219,0.38)] transition hover:shadow-lg active:scale-[0.98]"
                 onClick={() => setStep((value) => Math.min(value + 1, steps.length - 1))}
                 type="button"
               >
@@ -420,7 +419,7 @@ export function OnboardingScreen() {
               </button>
             ) : (
               <button
-                className="inline-flex h-12 items-center gap-2 rounded-full bg-[#111827] px-6 text-sm font-black text-white shadow-[0_16px_34px_rgba(17,24,39,0.24)] transition active:scale-[0.98]"
+                className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#CDB4DB] px-6 text-sm font-medium text-[#202124] shadow-[0_4px_14px_rgba(205,180,219,0.38)] transition hover:shadow-lg active:scale-[0.98] disabled:opacity-70"
                 disabled={isSaving}
                 onClick={finishOnboarding}
                 type="button"
@@ -439,14 +438,34 @@ export function OnboardingScreen() {
 
 function OnboardingShell({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-[100dvh] bg-[#eef3fb] text-[#111827]">
-      <header className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 md:px-8">
-        <div className="text-3xl font-black tracking-[-0.04em] text-[#3f6df6]">
-          Fora
-        </div>
+    <div className="relative min-h-[100dvh] overflow-hidden bg-white font-sans text-[#202124] selection:bg-[#CDB4DB]/20">
+      <header className="flex h-16 items-center justify-between border-b border-[#e8eaed] bg-white/80 px-6 backdrop-blur-md lg:px-12">
+        <a
+          className="flex items-center gap-2 transition-opacity hover:opacity-75"
+          href="/"
+          aria-label="Go to Fora home"
+        >
+          <BrandDots />
+          <div className="text-lg font-medium tracking-tight text-[#202124]">
+            fora
+          </div>
+        </a>
         <UserButton />
       </header>
       {children}
+    </div>
+  );
+}
+
+function BrandDots({ size = "md" }: { size?: "sm" | "md" }) {
+  const dotClass = size === "sm" ? "h-[6px] w-[6px]" : "h-[10px] w-[10px]";
+
+  return (
+    <div className="flex items-center gap-[3px]" aria-hidden="true">
+      <div className={cn(dotClass, "rounded-full bg-[#CDB4DB]")} />
+      <div className={cn(dotClass, "rounded-full bg-[#FFB5A7]")} />
+      <div className={cn(dotClass, "rounded-full bg-[#F4F1DE]")} />
+      <div className={cn(dotClass, "rounded-full bg-[#B2C9AB]")} />
     </div>
   );
 }
@@ -468,10 +487,10 @@ function ChipGrid({
         return (
           <button
             className={cn(
-              "flex min-h-14 items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-black transition active:scale-[0.99]",
+              "flex min-h-14 items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left text-sm font-medium transition active:scale-[0.99]",
               isSelected
-                ? "border-[#3f6df6] bg-white text-[#111827] shadow-[0_10px_28px_rgba(63,109,246,0.14)]"
-                : "border-[#d7deea] bg-white/60 text-[#475569] hover:border-[#aab7cc] hover:bg-white",
+                ? "border-[#202124] bg-white text-[#202124] shadow-[0_10px_28px_rgba(32,33,36,0.08)]"
+                : "border-[#dadce0] bg-white text-[#5f6368] hover:border-[#bfc5cd] hover:bg-[#f8f9fa]",
             )}
             key={option.value}
             onClick={() => onToggle(option.value)}
@@ -482,8 +501,8 @@ function ChipGrid({
               className={cn(
                 "grid h-6 w-6 shrink-0 place-items-center rounded-full border",
                 isSelected
-                  ? "border-[#3f6df6] bg-[#3f6df6] text-white"
-                  : "border-[#cbd5e1] bg-white text-transparent",
+                  ? "border-[#202124] bg-[#202124] text-white"
+                  : "border-[#dadce0] bg-white text-transparent",
               )}
             >
               <Check className="h-3.5 w-3.5" />
@@ -507,10 +526,10 @@ function SingleChoice({
   return (
     <button
       className={cn(
-        "h-11 rounded-2xl border px-3 text-sm font-black transition active:scale-[0.98]",
+        "h-11 rounded-xl border px-3 text-sm font-medium transition active:scale-[0.98]",
         isSelected
-          ? "border-[#3f6df6] bg-[#3f6df6] text-white"
-          : "border-[#d7deea] bg-white text-[#475569] hover:border-[#aab7cc]",
+          ? "border-[#202124] bg-[#202124] text-white"
+          : "border-[#dadce0] bg-white text-[#5f6368] hover:border-[#bfc5cd]",
       )}
       onClick={onClick}
       type="button"

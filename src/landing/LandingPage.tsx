@@ -1,201 +1,554 @@
-import { Play, Star } from "lucide-react";
-
-import {
-  HeaderAuthActions,
-  HeroAuthActions,
-  MobileAuthActions,
-} from "@/auth/AuthActions";
-import { Button } from "@/components/ui/button";
-import { dailyStackPreview } from "@/domain/opportunities";
-import { categoryCards, benefits, navItems } from "@/landing/landing-content";
-import { DailyStackPreview } from "@/landing/DailyStackPreview";
-import {
-  categoryColorRecipes,
-  socialProofAvatarRecipes,
-} from "@/landing/visual-recipes";
+import { motion } from "framer-motion";
+import { SignInButton, useAuth, UserButton } from "@clerk/react";
+import { Sparkles, Heart } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+
+const G = {
+  blue: "#CDB4DB", // Lavender
+  red: "#FFB5A7", // Warm Peach
+  yellow: "#F4F1DE", // Soft Cream
+  green: "#B2C9AB", // Sage Green
+} as const;
+
+const ease = [0.32, 0.72, 0, 1] as const;
+
+const SAMPLE_EVENTS = [
+  {
+    id: "venushacks",
+    title: "VENUS",
+    titleBreak: "HACKS",
+    subtitle: "Build The Future",
+    eventName: "VenusHacks 2026",
+    host: "WICS",
+    tags: ["✨ Beginner Friendly", "💸 Free", "✈️ Travel Support"],
+    month: "May",
+    date: "24",
+    fullDate: "Friday, May 24",
+    time: "6:00 PM to Sun 12:00 PM PDT",
+    guests: "500+ Hackers",
+    guestNames: "Alice, Bob & Charlie",
+    status: "Application Accepted",
+    statusDesc: "A confirmation email has been sent",
+    gradient: `linear-gradient(135deg, ${G.blue}, ${G.red}cc)`,
+    iconColor: G.green
+  },
+  {
+    id: "gracehopper",
+    title: "GRACE",
+    titleBreak: "HOPPER",
+    subtitle: "Celebration Grant",
+    eventName: "GHC 2026 Scholarship",
+    host: "AnitaB.org",
+    tags: ["🎓 Scholarship", "✈️ Travel Support", "👩‍💻 Women in Tech"],
+    month: "Oct",
+    date: "12",
+    fullDate: "Tuesday, Oct 12",
+    time: "All Day Event",
+    guests: "15,000+ Attendees",
+    guestNames: "Diana, Eva & Fay",
+    status: "Saved to Stack",
+    statusDesc: "Deadline approaching in 5 days",
+    gradient: `linear-gradient(135deg, ${G.green}, ${G.blue}cc)`,
+    iconColor: G.blue
+  },
+  {
+    id: "outintech",
+    title: "OUT IN",
+    titleBreak: "TECH",
+    subtitle: "Mentorship Program",
+    eventName: "Fall Mentorship Cohort",
+    host: "Out in Tech",
+    tags: ["🏳️‍🌈 LGBTQ+ Tech", "🤝 Mentorship", "💻 Remote"],
+    month: "Sep",
+    date: "01",
+    fullDate: "Monday, Sep 01",
+    time: "Remote / Flexible",
+    guests: "200+ Mentors",
+    guestNames: "George, Helen & Ian",
+    status: "Application Open",
+    statusDesc: "High match based on your goals",
+    gradient: `linear-gradient(135deg, ${G.red}, ${G.yellow}cc)`,
+    iconColor: G.red
+  },
+  {
+    id: "codepath",
+    title: "CODE",
+    titleBreak: "PATH",
+    subtitle: "Intro to iOS Dev",
+    eventName: "Fall 2026 Course",
+    host: "CodePath",
+    tags: ["✨ Beginner Friendly", "🏫 Course", "💸 Free"],
+    month: "Sep",
+    date: "15",
+    fullDate: "Tuesday, Sep 15",
+    time: "Weekly 6:00 PM",
+    guests: "1000+ Students",
+    guestNames: "Jack, Kelly & Liam",
+    status: "High Fit",
+    statusDesc: "Matches your interest in Mobile Dev",
+    gradient: `linear-gradient(135deg, ${G.yellow}, ${G.green}cc)`,
+    iconColor: G.yellow
+  }
+];
 
 export function LandingPage() {
   return (
-    <main className="min-h-screen overflow-hidden bg-[#f4f8ff] px-3 py-3 text-ink sm:px-4 sm:py-4">
-      <section className="mx-auto max-w-[1420px] overflow-hidden rounded-[1.35rem] border border-ink/10 bg-white shadow-[0_22px_80px_rgba(61,85,128,0.14)]">
-        <Header />
-        <div className="grid gap-8 px-5 pb-10 pt-5 sm:px-8 lg:grid-cols-[1fr_0.9fr] lg:gap-6 lg:px-14 lg:pb-12 lg:pt-10">
-          <HeroCopy />
-          <HeroVisual />
+    <div className="relative min-h-[100dvh] overflow-hidden bg-white font-sans text-[#202124] selection:bg-[#4285F4]/20">
+      <Nav />
+
+      <main className="relative flex min-h-[100dvh] items-center px-6 pt-20 lg:px-24">
+        <div className="mx-auto w-full max-w-7xl">
+          <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
+            <LeftCopy />
+            <RightVisual />
+          </div>
         </div>
-        <Categories />
-        <BenefitStrip />
-      </section>
-      <p className="mx-auto mt-6 max-w-7xl text-center text-base font-semibold text-blueberry sm:text-lg">
-        5 minutes today. More opportunities tomorrow.
-      </p>
-    </main>
-  );
-}
-
-function Header() {
-  return (
-    <header className="flex items-center justify-between px-5 py-5 sm:px-8 lg:px-14">
-      <a className="text-2xl font-black tracking-normal text-blueberry" href="/">
-        Fora
-      </a>
-      <nav className="hidden items-center gap-9 text-sm font-bold text-ink/72 lg:flex">
-        {navItems.map((item) => (
-          <a className="transition hover:text-blueberry" href="/" key={item}>
-            {item}
-          </a>
-        ))}
-      </nav>
-      <HeaderAuthActions />
-      <MobileAuthActions />
-    </header>
-  );
-}
-
-function HeroCopy() {
-  return (
-    <div className="flex min-h-[520px] flex-col justify-center lg:pb-4">
-      <h1 className="max-w-[680px] text-balance text-[3.15rem] font-black leading-[0.96] tracking-normal text-ink sm:text-6xl lg:text-[4.9rem]">
-        Find your next tech opening{" "}
-        <span className="text-blueberry">in 5 minutes.</span>
-      </h1>
-      <p className="mt-7 max-w-[560px] text-lg font-medium leading-8 text-ink/70">
-        A daily stack of hackathons, mentors, scholarships, and communities
-        matched to your goals.
-      </p>
-      <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <HeroAuthActions />
-        <button className="inline-flex h-14 items-center justify-center gap-2 rounded-full px-5 text-sm font-black text-blueberry transition hover:bg-blueberry/5">
-          See how it works
-          <span className="grid h-7 w-7 place-items-center rounded-full border border-blueberry/30">
-            <Play className="h-3.5 w-3.5 fill-blueberry" aria-hidden="true" />
-          </span>
-        </button>
-      </div>
-      <SocialProof />
+      </main>
     </div>
   );
 }
 
-function SocialProof() {
-  return (
-    <div className="mb-8 mt-10 flex flex-wrap items-center gap-4 lg:mb-0">
-      <div className="flex -space-x-2">
-        {["A", "N", "S", "M"].map((initial, index) => (
-          <span
-            className={cn(
-              "grid h-9 w-9 place-items-center rounded-full border-2 border-white text-xs font-black text-white shadow-sm",
-              socialProofAvatarRecipes[index],
-            )}
-            key={initial}
-          >
-            {initial}
-          </span>
-        ))}
-      </div>
-      <div>
-        <div className="flex gap-0.5 text-sunshine">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <Star
-              className="h-4 w-4 fill-current"
-              aria-hidden="true"
-              key={index}
-            />
-          ))}
-        </div>
-        <p className="mt-1 text-sm font-semibold text-ink/58">
-          Loved by learners like you
-        </p>
-      </div>
-    </div>
-  );
-}
+function Nav() {
+  const navigate = useNavigate();
+  const { isLoaded, isSignedIn } = useAuth();
 
-function HeroVisual() {
   return (
-    <div
-      className="relative min-h-[560px] lg:min-h-[640px]"
-      aria-label="Fora app preview"
+    <motion.header
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease }}
+      className="absolute left-0 right-0 top-0 z-50 flex h-16 items-center justify-between border-b border-[#e8eaed] bg-white/80 px-6 backdrop-blur-md lg:px-12"
     >
-      <div className="absolute right-[-12%] top-[19%] h-64 w-64 rounded-full bg-sunshine lg:h-80 lg:w-80" />
-      <div className="absolute bottom-[15%] right-[18%] h-52 w-52 rounded-full bg-mint/75 lg:h-64 lg:w-64" />
-      <div className="absolute bottom-[15%] left-[16%] h-64 w-64 rounded-full bg-blueberry lg:h-80 lg:w-80" />
-      <div className="absolute left-[3%] top-[32%] hidden h-32 w-32 bg-[radial-gradient(#f4b63f_1.5px,transparent_1.5px)] [background-size:12px_12px] lg:block" />
-      <DailyStackPreview
-        opportunities={dailyStackPreview}
-        className="absolute left-1/2 top-1/2 w-[min(72vw,320px)] -translate-x-1/2 -translate-y-1/2 lg:w-[330px]"
-      />
-    </div>
-  );
-}
-
-function Categories() {
-  return (
-    <section id="categories" className="px-5 pb-12 sm:px-8 lg:px-14">
-      <div className="mb-5">
-        <h2 className="text-2xl font-black sm:text-3xl">
-          Explore what's possible
-        </h2>
-        <p className="mt-1 text-sm font-medium text-ink/58">
-          Opportunities designed for you.
-        </p>
+      <div className="flex items-center gap-2">
+        {/* Google-style 4-dot logo */}
+        <div className="flex items-center gap-[3px]">
+          <div className="h-[10px] w-[10px] rounded-full" style={{ background: G.blue }} />
+          <div className="h-[10px] w-[10px] rounded-full" style={{ background: G.red }} />
+          <div className="h-[10px] w-[10px] rounded-full" style={{ background: G.yellow }} />
+          <div className="h-[10px] w-[10px] rounded-full" style={{ background: G.green }} />
+        </div>
+        <span className="text-lg font-medium tracking-tight text-[#202124]">fora</span>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {categoryCards.map((card) => {
-          const Icon = card.icon;
-          const recipe = categoryColorRecipes[card.colorRecipe];
 
-          return (
-            <article
-              className={cn(
-                "rounded-[1.4rem] bg-white p-6 shadow-sm ring-1 transition duration-300 hover:-translate-y-1 hover:shadow-card",
-                recipe.ring,
-              )}
-              key={card.title}
+      <div className="flex items-center gap-6 text-[13px] font-normal text-[#5f6368]">
+        <span className="hidden sm:block">
+          <Clock />
+        </span>
+        <a href="#" className="hidden transition-colors hover:text-[#202124] sm:block">
+          Discover Events
+        </a>
+        {!isLoaded ? (
+          <button
+            className="rounded px-6 py-2 text-sm font-medium text-[#202124] opacity-70"
+            disabled
+            style={{ background: G.blue }}
+            type="button"
+          >
+            Loading
+          </button>
+        ) : isSignedIn ? (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/feed")}
+              className="rounded px-6 py-2 text-sm font-medium text-[#202124] transition-all hover:shadow-md active:scale-[0.98]"
+              style={{ background: G.blue }}
+              type="button"
             >
-              <span
-                className={cn(
-                  "grid h-14 w-14 place-items-center rounded-full",
-                  recipe.bg,
-                  recipe.text,
-                )}
-              >
-                <Icon className="h-7 w-7" aria-hidden="true" />
-              </span>
-              <h3 className="mt-6 text-xl font-black">{card.title}</h3>
-              <p className="mt-2 text-sm font-medium leading-6 text-ink/62">
-                {card.copy}
-              </p>
-            </article>
-          );
-        })}
+              Open feed
+            </button>
+            <UserButton />
+          </div>
+        ) : (
+          <SignInButton mode="modal" forceRedirectUrl="/feed">
+            <button
+              className="rounded px-6 py-2 text-sm font-medium text-[#202124] transition-all hover:shadow-md active:scale-[0.98]"
+              style={{ background: G.blue }}
+              type="button"
+            >
+              Sign in
+            </button>
+          </SignInButton>
+        )}
       </div>
-    </section>
+    </motion.header>
   );
 }
 
-function BenefitStrip() {
+function Clock() {
+  const [time, setTime] = useState("");
+
+  useEffect(() => {
+    function update() {
+      setTime(
+        new Date().toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          timeZoneName: "short",
+        })
+      );
+    }
+    update();
+    const id = setInterval(update, 60000);
+    return () => clearInterval(id);
+  }, []);
+
+  return <span>{time}</span>;
+}
+
+function LeftCopy() {
+  const navigate = useNavigate();
+  const { isLoaded, isSignedIn } = useAuth();
+
   return (
-    <section className="bg-[#eef6ff] px-5 py-8 sm:px-8 lg:px-14">
-      <div className="grid gap-7 lg:grid-cols-3">
-        {benefits.map((benefit) => {
-          const Icon = benefit.icon;
-          return (
-            <article className="flex gap-4" key={benefit.title}>
-              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-blueberry shadow-sm">
-                <Icon className="h-6 w-6" aria-hidden="true" />
-              </span>
-              <div>
-                <h3 className="font-black">{benefit.title}</h3>
-                <p className="mt-1 max-w-sm text-sm font-medium leading-6 text-ink/62">
-                  {benefit.copy}
-                </p>
-              </div>
-            </article>
-          );
-        })}
+    <motion.div
+      className="relative z-10 flex flex-col items-start pt-10 lg:pt-0"
+      initial="hidden"
+      animate="visible"
+      variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.12 } } }}
+    >
+      <motion.div
+        variants={{
+          hidden: { opacity: 0, y: 20, filter: "blur(8px)" },
+          visible: { opacity: 1, y: 0, filter: "blur(0px)" },
+        }}
+        transition={{ duration: 0.9, ease }}
+        className="flex items-center gap-2 text-sm font-medium text-[#5f6368]"
+      >
+        <div className="flex items-center gap-[3px]">
+          <div className="h-[6px] w-[6px] rounded-full" style={{ background: G.blue }} />
+          <div className="h-[6px] w-[6px] rounded-full" style={{ background: G.red }} />
+          <div className="h-[6px] w-[6px] rounded-full" style={{ background: G.yellow }} />
+          <div className="h-[6px] w-[6px] rounded-full" style={{ background: G.green }} />
+        </div>
+        fora
+      </motion.div>
+
+      <TypewriterHeading />
+
+      <motion.p
+        variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+        transition={{ duration: 0.7, ease }}
+        className="mt-8 max-w-[500px] text-lg leading-relaxed text-[#5f6368] sm:text-xl lg:text-2xl"
+      >
+        Spend 5 minutes a day discovering hackathons, scholarships, and communities that actually fit your goals. No insider network required.
+      </motion.p>
+
+      <motion.div
+        variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
+        transition={{ duration: 0.7, ease }}
+        className="mt-8 flex items-center gap-3"
+      >
+        {!isLoaded ? (
+          <button
+            className="flex h-11 items-center gap-2 rounded-xl px-6 text-[14px] font-medium text-[#202124] opacity-70"
+            disabled
+            style={{ background: G.blue, boxShadow: `0 4px 14px ${G.blue}60` }}
+            type="button"
+          >
+            Loading
+          </button>
+        ) : isSignedIn ? (
+          <button
+            className="flex h-11 items-center gap-2 rounded-xl px-6 text-[14px] font-medium text-[#202124] transition-all hover:shadow-lg active:scale-[0.98]"
+            onClick={() => navigate("/feed")}
+            style={{ background: G.blue, boxShadow: `0 4px 14px ${G.blue}60` }}
+            type="button"
+          >
+            Open your feed
+          </button>
+        ) : (
+          <SignInButton mode="modal" forceRedirectUrl="/feed">
+            <button
+              className="flex h-11 items-center gap-2 rounded-xl px-6 text-[14px] font-medium text-[#202124] transition-all hover:shadow-lg active:scale-[0.98]"
+              style={{ background: G.blue, boxShadow: `0 4px 14px ${G.blue}60` }}
+              type="button"
+            >
+              Start exploring
+            </button>
+          </SignInButton>
+        )}
+        <button className="flex h-11 items-center gap-2 rounded-xl border border-[#dadce0] px-6 text-[14px] font-medium text-[#5f6368] transition-all hover:bg-[#f8f9fa] active:scale-[0.98]">
+          Learn more
+        </button>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function TypewriterHeading() {
+  const [displayedText, setDisplayedText] = useState("");
+  const fullText = "Find your\nplace in\ntech.";
+  
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    let isDeleting = false;
+    let i = 0;
+
+    function loop() {
+      if (isDeleting) {
+        setDisplayedText(fullText.slice(0, i - 1));
+        i--;
+      } else {
+        setDisplayedText(fullText.slice(0, i + 1));
+        i++;
+      }
+
+      let speed = isDeleting ? 30 : 70;
+
+      if (!isDeleting && i === fullText.length) {
+        speed = 3000; // Pause at the end for 3 seconds
+        isDeleting = true;
+      } else if (isDeleting && i === 0) {
+        speed = 1000; // Pause before typing again
+        isDeleting = false;
+      }
+
+      timeoutId = setTimeout(loop, speed);
+    }
+
+    timeoutId = setTimeout(loop, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  return (
+    <motion.h1
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8 }}
+      className="mt-6 min-h-[3em] text-[4rem] font-normal leading-[1.05] tracking-tight text-[#202124] sm:text-[5rem] lg:text-[6.5rem] xl:text-[7.5rem]"
+    >
+      {displayedText.split('\n').map((line, index, arr) => (
+        <span key={index}>
+          {line}
+          {index < arr.length - 1 && <br />}
+        </span>
+      ))}
+      <motion.span
+        animate={{ opacity: [1, 0, 1] }}
+        transition={{ repeat: Infinity, duration: 0.9, ease: "easeInOut" }}
+        className="inline-block w-[3px] h-[0.75em] bg-[#d1d5db] ml-1 align-middle"
+      />
+    </motion.h1>
+  );
+}
+
+function RightVisual() {
+  const phoneRef = useRef<HTMLDivElement>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const el = phoneRef.current;
+    if (!el) return;
+    let start = performance.now();
+
+    function animate(t: number) {
+      const s = (t - start) / 1000;
+      const y = Math.sin(s * 0.5) * 14;
+      const r = Math.sin(s * 0.35) * 2;
+      if (el) el.style.transform = `translateY(${y}px) rotate(${-2 + r}deg)`;
+      requestAnimationFrame(animate);
+    }
+
+    const id = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % SAMPLE_EVENTS.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9, y: 60 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 1.2, ease, delay: 0.5 }}
+      className="relative flex w-full items-center justify-center"
+    >
+      {/* Soft circular backdrop */}
+      <div className="relative flex aspect-square w-full max-w-[640px] items-center justify-center rounded-full bg-[#f8f9fa] shadow-[0_0_0_1px_#e8eaed]">
+        {/* Subtle colored radials */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-full">
+          <div
+            className="absolute -left-10 -top-10 h-[300px] w-[300px] rounded-full blur-[90px] opacity-[0.15]"
+            style={{ background: G.blue }}
+          />
+          <div
+            className="absolute -right-10 top-10 h-[250px] w-[250px] rounded-full blur-[80px] opacity-[0.12]"
+            style={{ background: G.red }}
+          />
+          <div
+            className="absolute bottom-0 left-1/3 h-[250px] w-[250px] rounded-full blur-[80px] opacity-[0.12]"
+            style={{ background: G.green }}
+          />
+        </div>
+
+        {/* Phone Mockup */}
+        <div ref={phoneRef} className="relative z-10 h-[640px] w-[320px]">
+          <div className="h-full w-full rounded-[2.5rem] border border-[#dadce0] bg-white shadow-[0_20px_60px_rgba(0,0,0,0.08)] overflow-hidden relative">
+            {/* Notch */}
+            <div className="absolute left-1/2 top-2 z-20 h-6 w-24 -translate-x-1/2 rounded-full bg-[#202124]" />
+
+            {/* Phone Screen Container for Scrolling */}
+            <div className="h-full w-full bg-white pt-12 overflow-hidden">
+              <motion.div 
+                className="flex flex-col w-full h-full"
+                animate={{ y: `-${currentIndex * 100}%` }}
+                transition={{ type: "spring", stiffness: 200, damping: 25 }}
+              >
+                {SAMPLE_EVENTS.map((event) => (
+                  <div key={event.id} className="flex-shrink-0 w-full h-full flex flex-col relative pb-4">
+                    {/* Header image */}
+                    <div className="px-4">
+                      <div
+                        className="flex h-36 w-full flex-col items-center justify-center rounded-2xl overflow-hidden relative"
+                        style={{ background: event.gradient }}
+                      >
+                        <motion.div
+                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
+                          animate={{ x: ["-100%", "100%"] }}
+                          transition={{ duration: 3, repeat: Infinity, ease: "linear", repeatDelay: 2 }}
+                        />
+                        <h2 className="relative z-10 text-4xl font-black italic tracking-tighter text-white drop-shadow-sm text-center leading-tight">
+                          {event.title}<br/>{event.titleBreak}
+                        </h2>
+                        <p className="relative z-10 mt-1 text-[9px] font-bold uppercase tracking-widest text-white/80">
+                          {event.subtitle}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Event Details */}
+                    <div className="mt-4 flex flex-1 flex-col rounded-t-[1.5rem] border-t border-[#e8eaed] bg-white p-5">
+                      <h3 className="text-lg font-medium text-[#202124]">{event.eventName}</h3>
+                      <p className="mt-1 flex items-center gap-1.5 text-xs text-[#5f6368]">
+                        <span className="inline-block h-3.5 w-3.5 rounded-full" style={{ background: G.blue }} />
+                        Hosted by {event.host}
+                      </p>
+
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {event.tags.map((tag, i) => (
+                          <span key={i} className="rounded-full bg-[#f8f9fa] border border-[#e8eaed] px-2.5 py-1 text-[10px] font-medium text-[#5f6368]">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className="mt-5 space-y-3">
+                        <div className="flex gap-4">
+                          <div
+                            className="flex flex-col items-center justify-center rounded-xl px-3 py-2 text-center w-12"
+                            style={{ background: `${G.blue}10` }}
+                          >
+                            <span className="text-[10px] font-semibold uppercase" style={{ color: G.blue }}>
+                              {event.month}
+                            </span>
+                            <span className="text-base font-medium text-[#202124]">{event.date}</span>
+                          </div>
+                          <div className="flex flex-col justify-center">
+                            <p className="text-sm font-medium text-[#202124]">{event.fullDate}</p>
+                            <p className="text-xs text-[#5f6368] mt-0.5">{event.time}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Guests */}
+                      <div className="mt-auto mb-16 rounded-2xl border border-[#e8eaed] p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex -space-x-2">
+                            <div className="h-8 w-8 rounded-full border-2 border-white" style={{ background: G.blue }} />
+                            <div className="h-8 w-8 rounded-full border-2 border-white" style={{ background: G.red }} />
+                            <div className="h-8 w-8 rounded-full border-2 border-white" style={{ background: G.yellow }} />
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-[#202124]">{event.guests}</p>
+                            <p className="text-[10px] text-[#5f6368] mt-0.5">{event.guestNames}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom notification */}
+                    <div className="absolute bottom-6 left-4 right-4 rounded-xl border border-[#e8eaed] bg-white p-3.5 shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
+                      <div className="flex items-center gap-3">
+                        <div className="grid h-10 w-10 place-items-center rounded-full flex-shrink-0" style={{ background: `${event.iconColor}15` }}>
+                          <svg viewBox="0 0 24 24" className="h-5 w-5" fill={event.iconColor}>
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                          </svg>
+                        </div>
+                        <div className="overflow-hidden">
+                          <p className="text-sm font-medium text-[#202124] truncate">{event.status}</p>
+                          <p className="text-[10px] text-[#5f6368] mt-0.5 truncate">{event.statusDesc}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </motion.div>
+            </div>
+          </div>
+        </div>
+
+        {/* Floating Elements */}
+        {/* Calendar — Red */}
+        <motion.div
+          animate={{ y: [-6, 6, -6], rotate: [-12, -8, -12] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute right-8 top-28 z-20 flex h-16 w-16 flex-col items-center justify-center rounded-xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.1)] overflow-hidden border border-[#e8eaed]"
+        >
+          <div className="w-full py-1 text-center text-[8px] font-bold uppercase text-white" style={{ background: G.red }}>
+            May
+          </div>
+          <div className="text-2xl font-medium text-[#202124]">24</div>
+        </motion.div>
+
+        {/* Heart icon */}
+        <motion.div
+          animate={{ y: [4, -8, 4], rotate: [12, 16, 12] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute left-4 top-1/2 z-20 grid h-14 w-14 place-items-center rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.08)] border border-white/60 bg-white/40 backdrop-blur-md"
+        >
+          <Heart className="h-6 w-6" style={{ color: G.red, fill: G.red }} />
+        </motion.div>
+
+        {/* Soft Orb 1 — Yellow */}
+        <motion.div
+          animate={{ y: [3, -5, 3] }}
+          transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-12 left-10 z-20 h-20 w-20 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.1)] backdrop-blur-md border border-white/40"
+          style={{ background: `linear-gradient(135deg, ${G.yellow}99, ${G.red}66)` }}
+        />
+
+        {/* Soft Orb 2 — Green */}
+        <motion.div
+          animate={{ y: [-4, 6, -4] }}
+          transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-16 right-4 z-20 h-16 w-16 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.1)] backdrop-blur-md border border-white/40"
+          style={{ background: `linear-gradient(135deg, ${G.green}99, ${G.blue}66)` }}
+        />
+
+        {/* Star — Yellow */}
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute left-24 top-20 z-20"
+        >
+          <Sparkles className="h-8 w-8" style={{ color: G.yellow }} />
+        </motion.div>
+
+        {/* Sphere — Blue */}
+        <motion.div
+          animate={{ y: [0, -10, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute right-12 bottom-1/3 z-20 h-10 w-10 rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.1)]"
+          style={{ background: `linear-gradient(135deg, ${G.blue}90, ${G.blue})` }}
+        />
       </div>
-    </section>
+    </motion.div>
   );
 }
