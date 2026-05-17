@@ -49,22 +49,24 @@ async function scrapeCuratedJson(source) {
   const records = JSON.parse(raw);
   const opportunities = Array.isArray(records) ? records : records.opportunities ?? [];
 
-  return opportunities.map((record) =>
-    createEvaluation({
-      opportunity: normalizeCuratedOpportunity(record, source),
-      pageText: [
-        record.title,
-        record.organization,
-        record.description,
-        record.category,
-        ...(record.eligibility_tags ?? []),
-        ...(record.accessibility_tags ?? []),
-        ...(record.topic_tags ?? []),
-        ...(record.experience_level_tags ?? []),
-      ].join(" "),
-      parseNotes: ["Loaded from curated JSON seed feed."],
-      source,
-    }),
+  return Promise.all(
+    opportunities.map(async (record) =>
+      createEvaluation({
+        opportunity: await withFallbackImage(normalizeCuratedOpportunity(record, source)),
+        pageText: [
+          record.title,
+          record.organization,
+          record.description,
+          record.category,
+          ...(record.eligibility_tags ?? []),
+          ...(record.accessibility_tags ?? []),
+          ...(record.topic_tags ?? []),
+          ...(record.experience_level_tags ?? []),
+        ].join(" "),
+        parseNotes: ["Loaded from curated JSON seed feed."],
+        source,
+      }),
+    ),
   );
 }
 
@@ -131,21 +133,29 @@ async function scrapeRssFeed(source) {
     });
   });
 
-  return parsed.map((item) => createEvaluation({ ...item, source }));
+  return Promise.all(
+    parsed.map(async (item) =>
+      createEvaluation({
+        ...item,
+        opportunity: await withFallbackImage(item.opportunity),
+        source,
+      }),
+    ),
+  );
 }
 
 async function scrapeIcsCalendar(source) {
   const text = await fetchHtml(source.url);
   const events = parseIcsEvents(text);
 
-  return events
+  const parsed = events
     .filter((event) => event.summary && !isPastDate(event.end ?? event.start))
     .map((event) => {
       const combinedText = `${event.summary} ${event.description} ${event.location}`;
       const lowerText = combinedText.toLowerCase();
       const url = event.url || source.event_url || source.url;
 
-      return createEvaluation({
+      return {
         opportunity: {
           id: slugify(`${source.source}-${event.uid || event.summary}-${event.start}`),
           title: normalizeWhitespace(event.summary),
@@ -184,8 +194,18 @@ async function scrapeIcsCalendar(source) {
         pageText: combinedText,
         parseNotes: ["Parsed from ICS calendar event."],
         source,
-      });
+      };
     });
+
+  return Promise.all(
+    parsed.map(async (item) =>
+      createEvaluation({
+        ...item,
+        opportunity: await withFallbackImage(item.opportunity),
+        source,
+      }),
+    ),
+  );
 }
 
 async function scrapeMlhSeason(source) {
@@ -237,7 +257,15 @@ async function scrapeMlhSeason(source) {
       });
     }
 
-    return parsed.map((item) => createEvaluation({ ...item, source }));
+    return Promise.all(
+      parsed.map(async (item) =>
+        createEvaluation({
+          ...item,
+          opportunity: await withFallbackImage(item.opportunity),
+          source,
+        }),
+      ),
+    );
   }
 
   $("a[href]").each((_, element) => {
@@ -279,7 +307,15 @@ async function scrapeMlhSeason(source) {
     });
   });
 
-  return parsed.map((item) => createEvaluation({ ...item, source }));
+  return Promise.all(
+    parsed.map(async (item) =>
+      createEvaluation({
+        ...item,
+        opportunity: await withFallbackImage(item.opportunity),
+        source,
+      }),
+    ),
+  );
 }
 
 async function parseDevpostPage(source) {
@@ -288,7 +324,7 @@ async function parseDevpostPage(source) {
   const pageText = normalizeWhitespace($("body").text());
   const title = source.name || firstNonEmptyText($, "h1");
   const subtitle = firstNonEmptyText($, "h3");
-  const image = getDevpostImage($, source.url);
+  const image = await getDevpostImage($, source.url);
   const meta = parseDevpostMeta(pageText);
   const tags = parseDevpostTags(pageText);
 
@@ -351,24 +387,135 @@ function getMlhImage(event) {
   };
 }
 
-function getDevpostImage($, baseUrl) {
+async function getDevpostImage($, baseUrl) {
   const imageUrl =
     $("meta[property='og:image']").attr("content") ??
     $("meta[name='twitter:image']").attr("content") ??
-    $("img").first().attr("src") ??
+    getBestImageCandidate($, baseUrl) ??
     null;
 
   if (!imageUrl) {
-    return {
-      url: null,
-      kind: "unknown",
-    };
+    const fallback = await fetchFallbackImage(baseUrl);
+
+    return fallback
+      ? {
+          url: fallback,
+          kind: "banner",
+        }
+      : {
+          url: null,
+          kind: "unknown",
+        };
   }
 
   return {
     url: new URL(imageUrl, baseUrl).toString(),
     kind: "banner",
   };
+}
+
+const fallbackImageCache = new Map();
+
+async function withFallbackImage(opportunity) {
+  if (opportunity.image_url) return opportunity;
+
+  const imageUrl = await fetchFallbackImage(opportunity.url);
+  if (!imageUrl) return opportunity;
+
+  return {
+    ...opportunity,
+    image_url: imageUrl,
+    image_kind: opportunity.image_kind === "logo" ? "logo" : "banner",
+  };
+}
+
+async function fetchFallbackImage(url) {
+  if (!url) return null;
+  if (fallbackImageCache.has(url)) return fallbackImageCache.get(url);
+
+  const imageUrl = await fetchFallbackImageUncached(url);
+  fallbackImageCache.set(url, imageUrl);
+
+  return imageUrl;
+}
+
+async function fetchFallbackImageUncached(url) {
+  const candidates = [url, getOriginUrl(url)].filter(Boolean);
+
+  for (const candidate of [...new Set(candidates)]) {
+    try {
+      const html = await fetchHtml(candidate);
+      const $ = cheerio.load(html);
+      const imageUrl =
+        absolutizeUrl(
+          $("meta[property='og:image']").attr("content") ??
+            $("meta[name='twitter:image']").attr("content") ??
+            null,
+          candidate,
+        ) ?? getBestImageCandidate($, candidate);
+
+      if (isUsableImageUrl(imageUrl)) return imageUrl;
+    } catch {
+      // Image fallback is best-effort; the opportunity can still be useful.
+    }
+  }
+
+  return null;
+}
+
+function getBestImageCandidate($, baseUrl) {
+  const images = [];
+
+  $("img").each((_, element) => {
+    const src =
+      $(element).attr("src") ??
+      $(element).attr("data-src") ??
+      $(element).attr("data-lazy-src") ??
+      null;
+    const alt = normalizeWhitespace($(element).attr("alt") ?? "");
+    const imageUrl = absolutizeUrl(src, baseUrl);
+
+    if (!isUsableImageUrl(imageUrl)) return;
+
+    const descriptor = `${alt} ${imageUrl}`.toLowerCase();
+    const score =
+      (descriptor.includes("hero") ? 4 : 0) +
+      (descriptor.includes("banner") ? 3 : 0) +
+      (descriptor.includes("cover") ? 3 : 0) +
+      (descriptor.includes("event") ? 2 : 0) +
+      (descriptor.includes("logo") ? -4 : 0) +
+      (imageUrl.endsWith(".svg") ? -3 : 0);
+
+    images.push({ imageUrl, score });
+  });
+
+  return images.sort((a, b) => b.score - a.score)[0]?.imageUrl ?? null;
+}
+
+function absolutizeUrl(value, baseUrl) {
+  if (!value) return null;
+
+  try {
+    return new URL(value, baseUrl).toString();
+  } catch {
+    return value;
+  }
+}
+
+function isUsableImageUrl(value) {
+  return Boolean(
+    value &&
+      !/\$\{|placeholder|no-avatar|blank|spacer|pixel|tracking/i.test(value),
+  );
+}
+
+function getOriginUrl(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.origin;
+  } catch {
+    return null;
+  }
 }
 
 function parseDevpostMeta(text) {

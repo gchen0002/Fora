@@ -199,13 +199,18 @@ export function FeedOne() {
     () => opportunities.map((item, index) => toFeedItem(item, index)),
     [opportunities],
   );
-  const categories = useMemo(() => getCategoryTabs(feedItems), [feedItems]);
+  const categories = useMemo(
+    () => getCategoryTabs(feedItems, saved),
+    [feedItems, saved],
+  );
   const visibleItems = useMemo(
     () =>
       activeCategory === "overall"
         ? feedItems
+        : activeCategory === "saved"
+          ? feedItems.filter((item) => saved.has(item.id))
         : feedItems.filter((item) => item.category === activeCategory),
-    [activeCategory, feedItems],
+    [activeCategory, feedItems, saved],
   );
 
   async function toggleSave(id: string) {
@@ -275,11 +280,26 @@ export function FeedOne() {
   if (visibleItems.length === 0) {
     return (
       <FeedShell navigateHome={() => navigate("/")}>
-        <CenteredFeedState eyebrow="No opportunities yet" title="Run the scraper and push accepted records.">
-          <p className="mt-3 text-sm leading-6 text-white/65">
-            This feed intentionally does not fall back to hardcoded events.
-          </p>
-        </CenteredFeedState>
+        <div className="relative h-[100dvh] bg-black">
+          <CategoryTabs
+            activeCategory={activeCategory}
+            categories={categories}
+            onChange={setActiveCategory}
+          />
+          {activeCategory === "saved" ? (
+            <CenteredFeedState eyebrow="Saved" title="No saved opportunities yet.">
+              <p className="mt-3 text-sm leading-6 text-white/65">
+                Bookmark opportunities from the feed and they will collect here.
+              </p>
+            </CenteredFeedState>
+          ) : (
+            <CenteredFeedState eyebrow="No opportunities yet" title="Run the scraper and push accepted records.">
+              <p className="mt-3 text-sm leading-6 text-white/65">
+                This feed intentionally does not fall back to hardcoded events.
+              </p>
+            </CenteredFeedState>
+          )}
+        </div>
       </FeedShell>
     );
   }
@@ -635,7 +655,7 @@ function toFeedItem(opportunity: ApiStackOpportunity, index: number) {
   };
 }
 
-function getCategoryTabs(items: FeedItem[]) {
+function getCategoryTabs(items: FeedItem[], saved: Set<string>) {
   const counts = items.reduce(
     (accumulator, item) => {
       accumulator.set(item.category, (accumulator.get(item.category) ?? 0) + 1);
@@ -649,6 +669,11 @@ function getCategoryTabs(items: FeedItem[]) {
       id: "overall",
       label: "Overall",
       count: items.length,
+    },
+    {
+      id: "saved",
+      label: "Saved",
+      count: items.filter((item) => saved.has(item.id)).length,
     },
     ...[...counts.entries()].map(([id, count]) => ({
       id,

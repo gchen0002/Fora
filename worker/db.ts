@@ -102,6 +102,7 @@ export async function getCandidateOpportunities(env: Env, clerkUserId: string) {
         FROM user_opportunity_actions
         WHERE clerk_user_id = ? AND action = 'dismiss'
       )
+        AND (deadline IS NULL OR datetime(deadline) >= datetime('now'))
       ORDER BY deadline IS NULL, deadline ASC, updated_at DESC
       LIMIT 100
     `,
@@ -122,6 +123,7 @@ export async function getExploreOpportunities(env: Env, clerkUserId: string) {
         FROM user_opportunity_actions
         WHERE clerk_user_id = ? AND action = 'dismiss'
       )
+        AND (deadline IS NULL OR datetime(deadline) >= datetime('now'))
       ORDER BY updated_at DESC
       LIMIT 50
     `,

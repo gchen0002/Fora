@@ -65,7 +65,7 @@ export function buildDailyStack(
   const selectedGoals = new Set(context.goalTags);
 
   if (selectedGoals.size === 0) {
-    return scored.slice(0, limit).map(toStackOpportunity);
+    return sortForDisplay(scored.slice(0, limit)).map(toStackOpportunity);
   }
 
   const selectedGoalLimit = Math.max(1, Math.round(limit * DAILY_INTENT_RATIO));
@@ -103,7 +103,7 @@ export function buildDailyStack(
     addCandidate(stack, usedIds, candidate, limit);
   }
 
-  return stack.map(toStackOpportunity);
+  return sortForDisplay(stack).map(toStackOpportunity);
 }
 
 export function buildExploreMore(
@@ -135,11 +135,19 @@ function scoreOpportunities(
   context: MatchContext,
 ): ScoredOpportunity[] {
   return opportunities
+    .filter((opportunity) => !isExpired(opportunity.deadline))
     .map((opportunity) => scoreOpportunity(opportunity, context))
     .sort((a, b) => {
       if (b.fitScore !== a.fitScore) return b.fitScore - a.fitScore;
       return getDeadlineTime(a.deadline) - getDeadlineTime(b.deadline);
     });
+}
+
+function sortForDisplay(opportunities: ScoredOpportunity[]) {
+  return [...opportunities].sort((a, b) => {
+    if (b.fitScore !== a.fitScore) return b.fitScore - a.fitScore;
+    return getDeadlineTime(a.deadline) - getDeadlineTime(b.deadline);
+  });
 }
 
 function scoreOpportunity(

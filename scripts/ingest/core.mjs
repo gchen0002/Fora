@@ -321,8 +321,7 @@ function looksExpired(deadline) {
   const parsed = Date.parse(deadline);
   if (Number.isNaN(parsed)) return false;
 
-  const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-  return parsed < thirtyDaysAgo;
+  return parsed < Date.now();
 }
 
 function mentionsCoveredFunding(text) {
