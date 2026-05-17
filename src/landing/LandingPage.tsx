@@ -426,20 +426,20 @@ function Nav() {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease }}
-      className="absolute left-0 right-0 top-0 z-50 flex h-16 items-center justify-between border-b border-[#e8eaed] bg-white/80 px-6 backdrop-blur-md lg:px-12"
+      className="absolute left-0 right-0 top-0 z-50 flex h-14 items-center justify-between border-b border-[#e8eaed] bg-white/80 px-4 backdrop-blur-md sm:h-16 sm:px-6 lg:px-12"
     >
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         {/* Google-style 4-dot logo */}
         <div className="flex items-center gap-[3px]">
-          <div className="h-[10px] w-[10px] rounded-full" style={{ background: G.blue }} />
-          <div className="h-[10px] w-[10px] rounded-full" style={{ background: G.red }} />
-          <div className="h-[10px] w-[10px] rounded-full" style={{ background: G.yellow }} />
-          <div className="h-[10px] w-[10px] rounded-full" style={{ background: G.green }} />
+          <div className="h-2 w-2 rounded-full sm:h-[10px] sm:w-[10px]" style={{ background: G.blue }} />
+          <div className="h-2 w-2 rounded-full sm:h-[10px] sm:w-[10px]" style={{ background: G.red }} />
+          <div className="h-2 w-2 rounded-full sm:h-[10px] sm:w-[10px]" style={{ background: G.yellow }} />
+          <div className="h-2 w-2 rounded-full sm:h-[10px] sm:w-[10px]" style={{ background: G.green }} />
         </div>
-        <span className="fora-spectrum-text text-lg font-medium tracking-tight">fora</span>
+        <span className="fora-spectrum-text text-base font-medium tracking-tight sm:text-lg">fora</span>
       </div>
 
-      <div className="flex items-center gap-6 text-[13px] font-normal text-[#5f6368]">
+      <div className="flex min-w-0 items-center gap-2 text-[13px] font-normal text-[#5f6368] sm:gap-6">
         {!isLoaded ? (
           <button
             className="fora-spectrum-btn-nav rounded-lg bg-white px-6 py-2 text-sm font-semibold opacity-70"
@@ -449,20 +449,22 @@ function Nav() {
             <span className="spectrum-label">Loading</span>
           </button>
         ) : isSignedIn ? (
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <button
               onClick={() => navigate("/onboarding")}
-              className="rounded-lg border border-[#dadce0] bg-white px-4 py-2 text-sm font-medium text-[#5f6368] transition-all hover:bg-[#f8f9fa] active:scale-[0.98]"
+              className="h-9 shrink-0 whitespace-nowrap rounded-lg border border-[#dadce0] bg-white px-3 text-xs font-medium text-[#5f6368] transition-all hover:bg-[#f8f9fa] active:scale-[0.98] sm:h-auto sm:px-4 sm:py-2 sm:text-sm"
               type="button"
             >
-              Edit Response
+              <span className="sm:hidden">Edit</span>
+              <span className="hidden sm:inline">Edit Response</span>
             </button>
             <button
               onClick={() => navigate("/feed")}
-              className="fora-spectrum-btn-nav rounded-lg bg-white px-6 py-2 text-sm font-semibold transition-all active:scale-[0.98]"
+              className="fora-spectrum-btn-nav h-9 shrink-0 whitespace-nowrap rounded-lg bg-white px-3 text-xs font-semibold transition-all active:scale-[0.98] sm:h-auto sm:px-6 sm:py-2 sm:text-sm"
               type="button"
             >
-              <span className="spectrum-label">Open feed</span>
+              <span className="spectrum-label sm:hidden">Feed</span>
+              <span className="spectrum-label hidden sm:inline">Open feed</span>
             </button>
             <UserButton />
           </div>
