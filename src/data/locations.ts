@@ -149,7 +149,8 @@ export async function geocodeLocation(text: string): Promise<{ latitude: number;
 
   for (const state of getStates()) {
     for (const alias of state.aliases) {
-      if (q.includes(alias)) {
+      // Match exact alias or alias as a separate word (e.g. "chicago il" matches "il")
+      if (q === alias || q.endsWith(` ${alias}`) || q.startsWith(`${alias} `)) {
         return { latitude: state.latitude, longitude: state.longitude };
       }
     }
