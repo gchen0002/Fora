@@ -190,6 +190,7 @@ function toPreviewStackCard(
     topicTags: [],
     experienceLevelTags: [],
     imageUrl: null,
+    imageKind: "unknown",
     fitScore: opportunity.matchScore,
     matchReasons: getMatchExplanationLabels(opportunity.matchExplanationKeys),
     imageClassName: opportunity.imageClassName,

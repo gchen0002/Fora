@@ -1,29 +1,45 @@
 import { Show } from "@clerk/react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
+import { FeedOne } from "@/components/feeds/FeedOne";
 import { VariationFive } from "@/components/variations/VariationFive";
-import { DailyStackScreen } from "@/daily-stack/DailyStackScreen";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<VariationFive />} />
-        <Route
-          path="/feed"
-          element={
-            <>
-              <Show when="signed-out">
-                <VariationFive />
-              </Show>
-              <Show when="signed-in">
-                <DailyStackScreen />
-              </Show>
-            </>
-          }
-        />
+        <Route path="/" element={<HomeRoute />} />
+        <Route path="/goal" element={<FeedRoute />} />
+        <Route path="/stack" element={<FeedRoute />} />
+        <Route path="/feed" element={<FeedRoute />} />
       </Routes>
     </BrowserRouter>
+  );
+}
+
+function HomeRoute() {
+  return (
+    <>
+      <Show when="signed-out">
+        <VariationFive />
+      </Show>
+      <Show when="signed-in">
+        <FeedOne />
+      </Show>
+    </>
+  );
+}
+
+function FeedRoute() {
+  return (
+    <>
+      <Show when="signed-out">
+        <VariationFive />
+      </Show>
+      <Show when="signed-in">
+        <FeedOne />
+      </Show>
+    </>
   );
 }
 

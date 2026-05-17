@@ -6,10 +6,10 @@
  * Apple/Mac-style frosted Sign In button.
  */
 import { motion } from "framer-motion";
+import { SignInButton, useAuth, UserButton } from "@clerk/react";
 import { ArrowRight, Megaphone, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
 
 const G = {
   blue: "#4285F4",
@@ -39,6 +39,8 @@ export function VariationFive() {
 
 function Nav() {
   const navigate = useNavigate();
+  const { isLoaded, isSignedIn } = useAuth();
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -20 }}
@@ -64,13 +66,36 @@ function Nav() {
         <a href="#" className="hidden transition-colors hover:text-[#202124] sm:block">
           Discover Events
         </a>
-        <button
-          onClick={() => navigate('/feed')}
-          className="rounded px-6 py-2 text-sm font-medium text-white transition-all hover:shadow-md active:scale-[0.98]"
-          style={{ background: G.blue }}
-        >
-          Sign In
-        </button>
+        {!isLoaded ? (
+          <button
+            className="rounded px-6 py-2 text-sm font-medium text-white opacity-70"
+            disabled
+            style={{ background: G.blue }}
+            type="button"
+          >
+            Loading
+          </button>
+        ) : isSignedIn ? (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/feed")}
+              className="rounded px-6 py-2 text-sm font-medium text-white transition-all hover:shadow-md active:scale-[0.98]"
+              style={{ background: G.blue }}
+            >
+              Open feed
+            </button>
+            <UserButton />
+          </div>
+        ) : (
+          <SignInButton mode="modal" forceRedirectUrl="/feed">
+            <button
+              className="rounded px-6 py-2 text-sm font-medium text-white transition-all hover:shadow-md active:scale-[0.98]"
+              style={{ background: G.blue }}
+            >
+              Sign in
+            </button>
+          </SignInButton>
+        )}
       </div>
     </motion.header>
   );
@@ -98,6 +123,9 @@ function Clock() {
 }
 
 function LeftCopy() {
+  const navigate = useNavigate();
+  const { isLoaded, isSignedIn } = useAuth();
+
   return (
     <motion.div
       className="relative z-10 flex flex-col items-start pt-10 lg:pt-0"
@@ -160,12 +188,33 @@ function LeftCopy() {
         transition={{ duration: 0.7, ease }}
         className="mt-8 flex items-center gap-3"
       >
-        <button
-          className="flex h-11 items-center gap-2 rounded px-6 text-[14px] font-medium text-white transition-all hover:shadow-lg active:scale-[0.98]"
-          style={{ background: G.blue, boxShadow: `0 1px 3px ${G.blue}40` }}
-        >
-          Create Your First Event
-        </button>
+        {!isLoaded ? (
+          <button
+            className="flex h-11 items-center gap-2 rounded px-6 text-[14px] font-medium text-white opacity-70"
+            disabled
+            style={{ background: G.blue, boxShadow: `0 1px 3px ${G.blue}40` }}
+            type="button"
+          >
+            Loading
+          </button>
+        ) : isSignedIn ? (
+          <button
+            onClick={() => navigate("/feed")}
+            className="flex h-11 items-center gap-2 rounded px-6 text-[14px] font-medium text-white transition-all hover:shadow-lg active:scale-[0.98]"
+            style={{ background: G.blue, boxShadow: `0 1px 3px ${G.blue}40` }}
+          >
+            Open your feed
+          </button>
+        ) : (
+          <SignInButton mode="modal" forceRedirectUrl="/feed">
+            <button
+              className="flex h-11 items-center gap-2 rounded px-6 text-[14px] font-medium text-white transition-all hover:shadow-lg active:scale-[0.98]"
+              style={{ background: G.blue, boxShadow: `0 1px 3px ${G.blue}40` }}
+            >
+              Create Your First Event
+            </button>
+          </SignInButton>
+        )}
         <button className="flex h-11 items-center gap-2 rounded border border-[#dadce0] px-6 text-[14px] font-medium text-[#1a73e8] transition-all hover:bg-[#f8f9fa] active:scale-[0.98]">
           Learn more
         </button>

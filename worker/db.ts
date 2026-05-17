@@ -106,9 +106,10 @@ export async function upsertOpportunity(env: Env, opportunity: IngestOpportunity
         topic_tags,
         experience_level_tags,
         image_url,
+        image_kind,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       ON CONFLICT(url) DO UPDATE SET
         title = excluded.title,
         organization = excluded.organization,
@@ -126,6 +127,7 @@ export async function upsertOpportunity(env: Env, opportunity: IngestOpportunity
         topic_tags = excluded.topic_tags,
         experience_level_tags = excluded.experience_level_tags,
         image_url = excluded.image_url,
+        image_kind = excluded.image_kind,
         updated_at = CURRENT_TIMESTAMP
     `,
   )
@@ -148,6 +150,7 @@ export async function upsertOpportunity(env: Env, opportunity: IngestOpportunity
       stringifyList(opportunity.topic_tags),
       stringifyList(opportunity.experience_level_tags),
       opportunity.image_url ?? null,
+      opportunity.image_kind ?? "unknown",
     )
     .run();
 

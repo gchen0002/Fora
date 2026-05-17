@@ -43,6 +43,8 @@ async function scrapeMlhSeason(source) {
         event.name.toLowerCase().includes("design") ? "design" : null,
       ].filter(Boolean);
 
+      const image = getMlhImage(event);
+
       parsed.push({
         opportunity: {
           id: slugify(`${source.source}-${event.slug ?? event.id}`),
@@ -63,7 +65,8 @@ async function scrapeMlhSeason(source) {
           ],
           topic_tags: ["hackathon", "community", "portfolio"],
           experience_level_tags: ["beginner-friendly"],
-          image_url: event.logoUrl ?? event.backgroundUrl ?? null,
+          image_url: image.url,
+          image_kind: image.kind,
         },
         pageText: `${event.name} ${event.location ?? ""} ${event.description ?? ""}`,
         parseNotes: ["Parsed from MLH structured season payload."],
@@ -105,6 +108,7 @@ async function scrapeMlhSeason(source) {
           ? ["beginner-friendly", "high-school"]
           : ["beginner-friendly"],
         image_url: null,
+        image_kind: "unknown",
       },
       pageText: text,
       parseNotes: ["Parsed from MLH event link fallback."],
@@ -112,6 +116,27 @@ async function scrapeMlhSeason(source) {
   });
 
   return parsed.map((item) => createEvaluation({ ...item, source }));
+}
+
+function getMlhImage(event) {
+  if (event.backgroundUrl) {
+    return {
+      url: event.backgroundUrl,
+      kind: "banner",
+    };
+  }
+
+  if (event.logoUrl) {
+    return {
+      url: event.logoUrl,
+      kind: "logo",
+    };
+  }
+
+  return {
+    url: null,
+    kind: "unknown",
+  };
 }
 
 async function evaluateSubmittedUrl(source) {

@@ -15,6 +15,7 @@ export interface ApiStackOpportunity {
   topicTags: string[];
   experienceLevelTags: string[];
   imageUrl: string | null;
+  imageKind: "logo" | "poster" | "banner" | "photo" | "unknown";
   fitScore: number;
   matchReasons: string[];
 }

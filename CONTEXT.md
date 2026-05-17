@@ -28,6 +28,28 @@ For the MVP, User-Submitted Sources can be automatically rejected or quarantined
 
 A limited set of high-fit opportunities shown as a short daily ritual. The Daily Stack is not an infinite feed or generic directory.
 
+## Productive Scroll
+
+A mobile-first browsing mode where the user can continue swiping through relevant opportunities after the Daily Stack. Productive Scroll can feel like a social short-form feed, but every card should be actionable, access-aware, and tied to a real opportunity rather than passive entertainment.
+
+Productive Scroll cards should optimize for instant vibe recognition first, then application decision-making. The first glance should make the opportunity type, audience fit, and reason to care obvious; the lower action area should expose date, location, access tags, and the apply/save/share path.
+
+Productive Scroll should use a consistent card shell with type-adaptive emphasis. Hackathons should foreground date, format, beginner fit, and build theme; scholarships should foreground funding, deadline, eligibility, and application effort; mentorship should foreground format, cadence, audience, and time commitment; internships should foreground role, location, experience level, and compensation when known.
+
+On mobile, each Productive Scroll card should behave like a full-screen card with a bottom action sheet: an immersive visual/type area for quick recognition and a stable lower panel for title, match reasons, date, location, access tags, and primary actions.
+
+Productive Scroll should treat apply and save activity as useful popularity signals. Likes and comments are not part of the MVP feed; they can make the experience feel social-first instead of opportunity-first.
+
+Popularity should be shown as a soft trust cue only when it helps the learner decide, such as "saved by similar learners" or "popular with beginners." Raw counters should not dominate the card or override match fit.
+
+Productive Scroll should prefer an opportunity's own image as the primary card visual, such as an event poster, program banner, official logo, or website preview image. If no trustworthy opportunity image is available, the card should use a neutral blank or brand-system background rather than guessing with unrelated venue, university, or city imagery.
+
+Small logos should be placed cleanly inside the Productive Scroll visual area rather than stretched into full-bleed backgrounds. Full-bleed imagery should be reserved for trustworthy posters, banners, or photos that can carry a card without becoming blurry or misleading.
+
+## Image Kind
+
+The classification of an opportunity image, such as logo, poster, banner, photo, or unknown. Image Kind helps Productive Scroll decide whether to render an image as a contained mark, a full-bleed visual, or a neutral fallback.
+
 ## Opportunity Preference
 
 A private learner preference describing what the learner is looking for, such as hackathons, scholarships, internships, mentorship, coding workshops, tech communities, or resume/interview prep.

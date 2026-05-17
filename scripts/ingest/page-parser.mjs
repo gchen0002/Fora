@@ -43,6 +43,7 @@ export async function parseGenericPageOpportunity(source) {
       topic_tags: inferTopicTags(lowerPageText),
       experience_level_tags: inferExperienceTags(lowerPageText),
       image_url: imageUrl,
+      image_kind: source.image_kind ?? (imageUrl ? "unknown" : "unknown"),
     },
     pageText,
     parseNotes: ["Parsed from generic page metadata and body text."],

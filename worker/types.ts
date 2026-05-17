@@ -43,6 +43,7 @@ export interface OpportunityRow {
   topic_tags: string;
   experience_level_tags: string;
   image_url: string | null;
+  image_kind: ImageKind;
   created_at: string;
   updated_at: string;
 }
@@ -66,6 +67,7 @@ export interface Opportunity {
   topicTags: string[];
   experienceLevelTags: string[];
   imageUrl: string | null;
+  imageKind: ImageKind;
   createdAt: string;
   updatedAt: string;
 }
@@ -94,7 +96,10 @@ export interface IngestOpportunity {
   topic_tags?: string[];
   experience_level_tags?: string[];
   image_url?: string | null;
+  image_kind?: ImageKind;
 }
+
+export type ImageKind = "logo" | "poster" | "banner" | "photo" | "unknown";
 
 export interface IngestSourceReview {
   id?: string;
