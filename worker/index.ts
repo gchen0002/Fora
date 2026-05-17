@@ -7,6 +7,7 @@ import {
   deleteUserAction,
   getCandidateOpportunities,
   getExploreOpportunities,
+  getFeaturedOpportunities,
   getProfile,
   getSavedOpportunityIds,
   recordSourceReview,
@@ -48,6 +49,30 @@ app.get("/api/health", (c) =>
     service: "fora-api",
   }),
 );
+
+app.get("/api/featured-opportunities", async (c) => {
+  const opportunities = await getFeaturedOpportunities(c.env, 8);
+
+  return c.json({
+    opportunities: opportunities.map((opportunity, index) => ({
+      id: opportunity.id,
+      title: opportunity.title,
+      organization: opportunity.organization,
+      description: opportunity.description,
+      category: opportunity.category,
+      locationText: opportunity.locationText,
+      isRemote: opportunity.isRemote,
+      deadline: opportunity.deadline,
+      accessibilityTags: opportunity.accessibilityTags,
+      topicTags: opportunity.topicTags,
+      experienceLevelTags: opportunity.experienceLevelTags,
+      imageUrl: opportunity.imageUrl,
+      imageKind: opportunity.imageKind,
+      match: Math.max(70, 96 - index * 4),
+      url: opportunity.url,
+    })),
+  });
+});
 
 app.get("/api/profile", requireUser, async (c) => {
   const profile = await getProfile(c.env, c.get("clerkUserId"));

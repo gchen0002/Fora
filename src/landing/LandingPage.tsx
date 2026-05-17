@@ -3,6 +3,10 @@ import { SignInButton, useAuth, UserButton } from "@clerk/react";
 import { Sparkles, ArrowUpRight, Bookmark, CalendarDays, MapPin } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  fetchFeaturedOpportunities,
+  type FeaturedOpportunity,
+} from "@/api/featured-opportunities";
 import { cn } from "@/lib/utils";
 
 /* ── Spectrum animation keyframes (injected once) ── */
@@ -122,6 +126,14 @@ const categoryStyles: Record<
       "radial-gradient(circle at 25% 25%, rgba(255,255,255,0.2), transparent 20%), linear-gradient(160deg, #581c87 0%, #4338ca 50%, #0f172a 100%)",
     focusLabel: "Role fit",
   },
+  workshop: {
+    marker: "Learn",
+    label: "Workshop",
+    accent: "#22c55e",
+    gradient:
+      "radial-gradient(circle at 60% 15%, rgba(255,255,255,0.28), transparent 20%), linear-gradient(130deg, #064e3b 0%, #0e7490 55%, #1e293b 100%)",
+    focusLabel: "Session",
+  },
   course: {
     marker: "Learn",
     label: "Course",
@@ -130,6 +142,31 @@ const categoryStyles: Record<
       "radial-gradient(circle at 60% 15%, rgba(255,255,255,0.28), transparent 20%), linear-gradient(130deg, #064e3b 0%, #0e7490 55%, #1e293b 100%)",
     focusLabel: "Session",
   },
+  mentorship: {
+    marker: "Mentor",
+    label: "Mentorship",
+    accent: "#14b8a6",
+    gradient:
+      "radial-gradient(circle at 80% 30%, rgba(255,255,255,0.22), transparent 20%), linear-gradient(140deg, #134e4a 0%, #1e3a5f 45%, #312e81 100%)",
+    focusLabel: "Cadence",
+  },
+  community: {
+    marker: "Meet",
+    label: "Community",
+    accent: "#ef4444",
+    gradient:
+      "radial-gradient(circle at 40% 70%, rgba(255,255,255,0.18), transparent 22%), linear-gradient(145deg, #9f1239 0%, #be185d 42%, #7e22ce 100%)",
+    focusLabel: "Community fit",
+  },
+};
+
+const defaultCategoryStyle = {
+  marker: "New",
+  label: "Opportunity",
+  accent: "#4285F4",
+  gradient:
+    "radial-gradient(circle at 72% 18%, rgba(255,255,255,0.25), transparent 20%), linear-gradient(135deg, #1e3a5f 0%, #4285F4 52%, #202124 100%)",
+  focusLabel: "Fit",
 };
 
 const SAMPLE_EVENTS = [
@@ -222,6 +259,140 @@ const SAMPLE_EVENTS = [
     location: "Virtual",
   }
 ];
+
+type LandingVisualEvent = (typeof SAMPLE_EVENTS)[number] & {
+  imageKind?: FeaturedOpportunity["imageKind"];
+  imageUrl?: string | null;
+};
+
+function toLandingVisualEvent(opportunity: FeaturedOpportunity): LandingVisualEvent {
+  const category = normalizeVisualCategory(opportunity.category);
+  const style = categoryStyles[category] ?? defaultCategoryStyle;
+  const dateParts = formatOpportunityDate(opportunity.deadline);
+  const titleParts = splitLandingTitle(opportunity.title);
+
+  return {
+    id: opportunity.id,
+    title: titleParts.title,
+    titleBreak: titleParts.titleBreak,
+    subtitle: buildLandingSubtitle(opportunity, style.label),
+    eventName: opportunity.title,
+    host: opportunity.organization || "Featured source",
+    category,
+    tags: buildLandingTags(opportunity, style.label),
+    month: dateParts.month,
+    date: dateParts.day,
+    fullDate: dateParts.fullDate,
+    time: opportunity.isRemote ? "Remote / Flexible" : "In-person or hybrid",
+    guests: "Featured from D1",
+    guestNames: "Matched learners",
+    status: "Live opportunity",
+    statusDesc: "Pulled from the opportunity database",
+    decisionHeadline: buildDecisionHeadline(category, opportunity),
+    match: opportunity.match,
+    instantRead: buildInstantRead(category, opportunity),
+    location: formatLandingLocation(opportunity),
+    imageKind: opportunity.imageKind,
+    imageUrl: opportunity.imageUrl,
+  };
+}
+
+function normalizeVisualCategory(category: string) {
+  return category.toLowerCase() === "course" ? "workshop" : category.toLowerCase();
+}
+
+function splitLandingTitle(title: string) {
+  const words = title.trim().split(/\s+/).filter(Boolean);
+  if (words.length <= 1) {
+    return { title: title.toUpperCase(), titleBreak: "" };
+  }
+
+  const midpoint = Math.ceil(words.length / 2);
+  return {
+    title: words.slice(0, midpoint).join(" ").toUpperCase(),
+    titleBreak: words.slice(midpoint).join(" ").toUpperCase(),
+  };
+}
+
+function formatOpportunityDate(deadline: string | null) {
+  if (!deadline) {
+    return { month: "Open", day: "--", fullDate: "Open timing" };
+  }
+
+  const parsed = new Date(`${deadline}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) {
+    return { month: "Open", day: "--", fullDate: "Open timing" };
+  }
+
+  return {
+    month: parsed.toLocaleDateString("en-US", { month: "short" }),
+    day: parsed.toLocaleDateString("en-US", { day: "2-digit" }),
+    fullDate: parsed.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    }),
+  };
+}
+
+function buildLandingSubtitle(opportunity: FeaturedOpportunity, categoryLabel: string) {
+  const description = opportunity.description.replace(/\s+/g, " ").trim();
+  if (!description) return categoryLabel;
+
+  const firstSentence = description.split(/[.!?]/)[0]?.trim();
+  return firstSentence ? truncateWords(firstSentence, 8) : categoryLabel;
+}
+
+function buildLandingTags(opportunity: FeaturedOpportunity, categoryLabel: string) {
+  const tags = [
+    ...opportunity.accessibilityTags,
+    ...opportunity.topicTags,
+    ...opportunity.experienceLevelTags,
+  ];
+  const labels = [categoryLabel, ...tags.map(formatLandingTag)]
+    .filter(Boolean)
+    .filter((tag, index, arr) => arr.findIndex((item) => item.toLowerCase() === tag.toLowerCase()) === index);
+
+  return labels.slice(0, 3).length >= 3 ? labels.slice(0, 3) : [...labels, "Free"].slice(0, 3);
+}
+
+function formatLandingTag(tag: string) {
+  return tag
+    .replace(/[-_]/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase())
+    .replace(/\bAi\b/g, "AI")
+    .replace(/\bUi\b/g, "UI")
+    .replace(/\bUx\b/g, "UX");
+}
+
+function buildDecisionHeadline(category: string, opportunity: FeaturedOpportunity) {
+  if (category === "hackathon") return opportunity.isRemote ? "Remote build sprint" : "In-person build sprint";
+  if (category === "scholarship") return "Funding opportunity";
+  if (category === "internship") return "Early-career role";
+  if (category === "mentorship") return "Mentor match";
+  if (category === "community") return "Community fit";
+  if (category === "workshop") return "Skill session";
+  return "Strong fit";
+}
+
+function buildInstantRead(category: string, opportunity: FeaturedOpportunity) {
+  if (opportunity.match >= 90) return "high-fit";
+  if (opportunity.isRemote) return "remote-friendly";
+  if (category === "hackathon") return "build window";
+  if (category === "scholarship") return "funding path";
+  return "matches goals";
+}
+
+function formatLandingLocation(opportunity: FeaturedOpportunity) {
+  if (opportunity.isRemote) return "Remote";
+  return opportunity.locationText?.trim() || "Location TBA";
+}
+
+function truncateWords(value: string, maxWords: number) {
+  const words = value.split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) return value;
+  return `${words.slice(0, maxWords).join(" ")}...`;
+}
 
 export function LandingPage() {
   return (
@@ -457,6 +628,7 @@ function TypewriterHeading() {
 
 export function RightVisual() {
   const phoneRef = useRef<HTMLDivElement>(null);
+  const [events, setEvents] = useState<LandingVisualEvent[]>(SAMPLE_EVENTS);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(1);
 
@@ -478,15 +650,40 @@ export function RightVisual() {
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setDirection(1);
-      setCurrentIndex((prev) => (prev + 1) % SAMPLE_EVENTS.length);
-    }, 4400);
-    return () => clearInterval(interval);
+    const controller = new AbortController();
+
+    async function loadFeaturedOpportunities() {
+      try {
+        const response = await fetchFeaturedOpportunities(controller.signal);
+        const featuredEvents = response.opportunities
+          .filter((opportunity) => opportunity.imageUrl)
+          .map(toLandingVisualEvent)
+          .slice(0, 4);
+
+        if (featuredEvents.length > 0) {
+          setEvents(featuredEvents);
+          setCurrentIndex(0);
+        }
+      } catch {
+        // The landing hero should stay fast and resilient; static samples are the fallback.
+      }
+    }
+
+    void loadFeaturedOpportunities();
+
+    return () => controller.abort();
   }, []);
 
-  const event = SAMPLE_EVENTS[currentIndex];
-  const style = categoryStyles[event.category];
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDirection(1);
+      setCurrentIndex((prev) => (prev + 1) % events.length);
+    }, 4400);
+    return () => clearInterval(interval);
+  }, [events.length]);
+
+  const event = events[currentIndex] ?? SAMPLE_EVENTS[0];
+  const style = categoryStyles[event.category] ?? defaultCategoryStyle;
 
   return (
     <motion.div
@@ -574,6 +771,13 @@ export function RightVisual() {
                 transition={{ duration: 1.1, ease }}
                 style={{ background: style.gradient }}
               />
+              {event.imageUrl && event.imageKind !== "logo" ? (
+                <img
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover opacity-70"
+                  src={event.imageUrl}
+                />
+              ) : null}
               <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.12),rgba(0,0,0,0.28)_35%,rgba(0,0,0,0.85)_100%)]" />
 
               <div className="relative z-10 mx-auto flex h-full w-full flex-col items-center px-4 pb-4 pt-4 sm:px-5">
@@ -662,7 +866,7 @@ export function RightVisual() {
                           fontFamily: "'DM Mono', monospace",
                         }}
                       >
-                        {currentIndex + 1}/{SAMPLE_EVENTS.length}
+                        {currentIndex + 1}/{events.length}
                       </div>
                     </div>
 

@@ -134,6 +134,36 @@ export async function getExploreOpportunities(env: Env, clerkUserId: string) {
   return result.results.map(toOpportunity);
 }
 
+export async function getFeaturedOpportunities(env: Env, limit = 8) {
+  const result = await env.DB.prepare(
+    `
+      SELECT *
+      FROM opportunities
+      WHERE image_url IS NOT NULL
+        AND image_url != ''
+        AND (deadline IS NULL OR datetime(deadline) >= datetime('now'))
+      ORDER BY
+        CASE category
+          WHEN 'hackathon' THEN 1
+          WHEN 'scholarship' THEN 2
+          WHEN 'internship' THEN 3
+          WHEN 'workshop' THEN 4
+          WHEN 'mentorship' THEN 5
+          WHEN 'community' THEN 6
+          ELSE 7
+        END,
+        deadline IS NULL,
+        deadline ASC,
+        updated_at DESC
+      LIMIT ?
+    `,
+  )
+    .bind(limit)
+    .all<OpportunityRow>();
+
+  return result.results.map(toOpportunity);
+}
+
 export async function recordUserAction(
   env: Env,
   clerkUserId: string,
