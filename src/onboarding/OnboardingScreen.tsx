@@ -141,13 +141,13 @@ const initialProfile: UserProfile = {
 const SPECTRUM_COLORS = ["#CDB4DB", "#FFB5A7", "#F4F1DE", "#B2C9AB", "#CDB4DB"];
 
 export function OnboardingScreen() {
-  const navigate = useNavigate();
   const { getToken } = useAuth();
   const { user } = useUser();
   const [profile, setProfile] = useState<UserProfile>(initialProfile);
   const [step, setStep] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [savingStatus, setSavingStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
   const saveControllerRef = useRef<AbortController | null>(null);
@@ -160,16 +160,16 @@ export function OnboardingScreen() {
       const elapsed = (t - start) / 1000;
       // Fixed speed to maintain consistent animation regardless of active step
       // Increased from 0.15 to 0.225 (1.5x faster)
-      const speed = 0.225; 
+      const speed = 0.225;
       // Continuous loop for conveyor belt effect
       const gradientOffset = (elapsed * speed) % 1;
-      
+
       barRefs.current.forEach((el, index) => {
         if (!el) return;
         const bgPos = `${(index / 3 - gradientOffset * (4/3)) * 100}% 50%`;
         el.style.backgroundPosition = bgPos;
       });
-      
+
       id = requestAnimationFrame(frame);
     }
     id = requestAnimationFrame(frame);
@@ -382,19 +382,22 @@ export function OnboardingScreen() {
     saveControllerRef.current?.abort();
     saveControllerRef.current = controller;
     setIsSaving(true);
+    setSavingStatus("Saving your profile settings...");
     setError(null);
 
     try {
       const token = await getToken();
       if (!token) throw new Error("Sign in again to refresh your session.");
-      
-      const coordinates = 
-        (profile.latitude && profile.longitude) 
-          ? null 
+
+      setSavingStatus("Checking your location preferences...");
+      const coordinates =
+        profile.latitude && profile.longitude
+          ? null
           : await geocodeKnownLocation(profile.locationText);
 
       if (controller.signal.aborted) return;
 
+      setSavingStatus("Finding a stack that matches your interests...");
       await saveProfile(token, {
         ...profile,
         costSensitive: profile.accessNeedTags.includes("free"),
@@ -405,7 +408,8 @@ export function OnboardingScreen() {
       }, controller.signal);
 
       if (!controller.signal.aborted && isMountedRef.current) {
-        navigate("/feed", { replace: true });
+        setSavingStatus("Opening your updated feed...");
+        window.location.assign(`/feed?profileUpdated=${Date.now()}`);
       }
     } catch (cause) {
       if (controller.signal.aborted) return;
@@ -420,6 +424,7 @@ export function OnboardingScreen() {
 
       if (!controller.signal.aborted && isMountedRef.current) {
         setIsSaving(false);
+        setSavingStatus(null);
       }
     }
   }
@@ -485,6 +490,12 @@ export function OnboardingScreen() {
 
             <div className="mt-8">{currentStep.content}</div>
 
+            {savingStatus ? (
+              <p className="mt-5 rounded-2xl border border-[#dadce0] bg-white px-4 py-3 text-sm font-bold text-[#202124]">
+                {savingStatus}
+              </p>
+            ) : null}
+
             {error ? (
               <p className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
                 {error}
@@ -530,7 +541,9 @@ export function OnboardingScreen() {
                     type="button"
                   >
                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                    <span className="spectrum-label">Build my stack</span>
+                    <span className="spectrum-label">
+                      {isSaving ? "Finding your stack" : "Build my stack"}
+                    </span>
                     <ArrowRight className="h-4 w-4" />
                   </button>
                 )}
