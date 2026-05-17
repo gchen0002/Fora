@@ -23,24 +23,37 @@ export async function parseGenericPageOpportunity(source) {
   const imageUrl = getGenericImageUrl($, source);
   const pageText = normalizeWhitespace($("body").text());
   const lowerPageText = pageText.toLowerCase();
+  const structuredEvent = getStructuredEvent($);
 
   return {
     opportunity: {
       id: slugify(`${source.source}-${source.url}`),
-      title: normalizeWhitespace(title),
-      organization: source.organization ?? inferOrganization($, source),
-      description: normalizeWhitespace(description).slice(0, 420),
+      title: normalizeWhitespace(source.name ?? structuredEvent?.name ?? title),
+      organization:
+        source.organization ??
+        structuredEvent?.organization ??
+        inferOrganization($, source),
+      description: normalizeWhitespace(
+        source.description ?? structuredEvent?.description ?? description,
+      ).slice(0, 420),
       url: source.url,
       source: source.source,
       category: source.category ?? inferCategory(lowerPageText),
-      location_text: source.location_text ?? inferLocation(lowerPageText),
+      location_text:
+        source.location_text ??
+        structuredEvent?.locationText ??
+        inferLocation(lowerPageText),
       latitude: source.latitude ?? null,
       longitude: source.longitude ?? null,
       is_remote:
         source.is_remote ??
+        structuredEvent?.isRemote ??
         (lowerPageText.includes("remote") || lowerPageText.includes("online")),
-      deadline: source.deadline ?? inferDateLikeValue(lowerPageText),
-      cost: lowerPageText.includes("free") ? "Free" : null,
+      deadline:
+        source.deadline ??
+        structuredEvent?.startDate ??
+        inferDateLikeValue(lowerPageText),
+      cost: lowerPageText.includes("free") ? "Free" : source.cost ?? null,
       eligibility_tags: compactUnique([
         ...(source.eligibility_tags ?? []),
         ...inferEligibilityTags(lowerPageText),
@@ -63,6 +76,57 @@ export async function parseGenericPageOpportunity(source) {
     pageText,
     parseNotes: ["Parsed from generic page metadata and body text."],
   };
+}
+
+function getStructuredEvent($) {
+  const candidates = [];
+
+  $("script[type='application/ld+json']").each((_, element) => {
+    const raw = $(element).contents().text();
+    if (!raw) return;
+
+    try {
+      collectJsonLdEvents(JSON.parse(raw), candidates);
+    } catch {
+      // Some pages ship malformed analytics JSON-LD; ignore and fall back.
+    }
+  });
+
+  return candidates[0] ?? null;
+}
+
+function collectJsonLdEvents(value, candidates) {
+  if (!value) return;
+
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectJsonLdEvents(item, candidates));
+    return;
+  }
+
+  if (value["@graph"]) {
+    collectJsonLdEvents(value["@graph"], candidates);
+  }
+
+  const type = Array.isArray(value["@type"]) ? value["@type"] : [value["@type"]];
+  if (!type.some((item) => String(item).toLowerCase() === "event")) return;
+
+  const location = value.location;
+  const locationName =
+    typeof location === "string"
+      ? location
+      : location?.name ?? location?.address?.addressLocality ?? null;
+  const attendanceMode = String(value.eventAttendanceMode ?? "").toLowerCase();
+
+  candidates.push({
+    name: normalizeWhitespace(value.name ?? ""),
+    description: normalizeWhitespace(value.description ?? ""),
+    organization: normalizeWhitespace(value.organizer?.name ?? value.performer?.name ?? ""),
+    locationText: normalizeWhitespace(locationName ?? ""),
+    isRemote:
+      attendanceMode.includes("online") ||
+      normalizeWhitespace(locationName ?? "").toLowerCase().includes("online"),
+    startDate: normalizeDate(value.startDate),
+  });
 }
 
 function inferOrganization($, source) {
@@ -109,6 +173,9 @@ function inferAccessTags(text) {
     text.includes("remote") || text.includes("online") ? "remote" : null,
     text.includes("travel") ? "travel-support" : null,
     text.includes("childcare") ? "childcare-support" : null,
+    text.includes("mentor") ? "mentorship-included" : null,
+    text.includes("no experience") ? "no-experience-required" : null,
+    text.includes("fee waived") || text.includes("no fee") ? "fee-waived" : null,
   ].filter(Boolean);
 }
 
@@ -127,6 +194,9 @@ function inferExperienceTags(text) {
     text.includes("beginner") || text.includes("no experience")
       ? "beginner-friendly"
       : null,
+    text.includes("early career") || text.includes("early-career")
+      ? "early-career"
+      : null,
   ].filter(Boolean);
 }
 
@@ -135,6 +205,15 @@ function inferDateLikeValue(text) {
   if (isoMatch) return isoMatch[0];
 
   return null;
+}
+
+function normalizeDate(value) {
+  if (!value) return null;
+
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) return null;
+
+  return new Date(parsed).toISOString();
 }
 
 function absolutizeUrl(value, baseUrl) {
