@@ -42,15 +42,6 @@ if (typeof document !== "undefined" && !document.getElementById(SPECTRUM_STYLE_I
       -webkit-text-fill-color: transparent;
       animation: spectrumShift 4s ease infinite;
     }
-    .fora-spectrum-bar {
-      background: linear-gradient(
-        90deg,
-        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB,
-        #CDB4DB, #FFB5A7
-      );
-      background-size: 300% 100%;
-      animation: spectrumShift 4s ease infinite;
-    }
     .fora-spectrum-btn-hero {
       border: 1.5px solid #e8eaed !important;
       background: white !important;
@@ -147,6 +138,8 @@ const initialProfile: UserProfile = {
   remotePreference: "remote",
 };
 
+const SPECTRUM_COLORS = ["#CDB4DB", "#FFB5A7", "#F4F1DE", "#B2C9AB", "#CDB4DB"];
+
 export function OnboardingScreen() {
   const navigate = useNavigate();
   const { getToken } = useAuth();
@@ -158,6 +151,30 @@ export function OnboardingScreen() {
   const [error, setError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
   const saveControllerRef = useRef<AbortController | null>(null);
+  const barRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    let start = performance.now();
+    let id: number;
+    function frame(t: number) {
+      const elapsed = (t - start) / 1000;
+      // Fixed speed to maintain consistent animation regardless of active step
+      // Increased from 0.15 to 0.225 (1.5x faster)
+      const speed = 0.225; 
+      // Continuous loop for conveyor belt effect
+      const gradientOffset = (elapsed * speed) % 1;
+      
+      barRefs.current.forEach((el, index) => {
+        if (!el) return;
+        const bgPos = `${(index / 3 - gradientOffset * (4/3)) * 100}% 50%`;
+        el.style.backgroundPosition = bgPos;
+      });
+      
+      id = requestAnimationFrame(frame);
+    }
+    id = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -302,44 +319,42 @@ export function OnboardingScreen() {
               }
             />
 
-            <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-[0.18em] text-[#5f6368]">
-                  Mileage
-                </span>
-                <div className="mt-2 grid grid-cols-4 gap-2">
-                  {mileageOptions.map((value) => (
-                    <SingleChoice
-                      isSelected={profile.mileageRange === value}
-                      key={value}
-                      label={`${value}`}
-                      onClick={() =>
-                        setProfile((current) => ({
-                          ...current,
-                          mileageRange: current.mileageRange === value ? null : value,
-                        }))
-                      }
-                    />
-                  ))}
-                </div>
-              </div>
+            <label className="inline-flex h-11 items-center gap-2 rounded-xl border border-[#dadce0] bg-white px-3">
+              <input
+                checked={profile.remotePreference === "remote"}
+                className="h-4 w-4 accent-[#202124]"
+                onChange={(event) =>
+                  setProfile((current) => ({
+                    ...current,
+                    remotePreference: event.target.checked ? "remote" : "any",
+                  }))
+                }
+                type="checkbox"
+              />
+              <span className="text-sm font-medium text-[#202124]">
+                Include remote first
+              </span>
+            </label>
 
-              <label className="flex min-h-[4.9rem] items-center gap-3 rounded-xl border border-[#dadce0] bg-white px-4">
-                <input
-                  checked={profile.remotePreference === "remote"}
-                  className="h-5 w-5 accent-[#202124]"
-                  onChange={(event) =>
-                    setProfile((current) => ({
-                      ...current,
-                      remotePreference: event.target.checked ? "remote" : "any",
-                    }))
-                  }
-                  type="checkbox"
-                />
-                <span className="text-sm font-medium text-[#202124]">
-                  Include remote first
-                </span>
-              </label>
+            <div>
+              <span className="text-xs font-bold uppercase tracking-[0.18em] text-[#5f6368]">
+                Mileage
+              </span>
+              <div className="mt-2 grid grid-cols-4 gap-2">
+                {mileageOptions.map((value) => (
+                  <SingleChoice
+                    isSelected={profile.mileageRange === value}
+                    key={value}
+                    label={`${value}`}
+                    onClick={() =>
+                      setProfile((current) => ({
+                        ...current,
+                        mileageRange: current.mileageRange === value ? null : value,
+                      }))
+                    }
+                  />
+                ))}
+              </div>
             </div>
           </div>
         ),
@@ -372,7 +387,11 @@ export function OnboardingScreen() {
     try {
       const token = await getToken();
       if (!token) throw new Error("Sign in again to refresh your session.");
-      const coordinates = await geocodeKnownLocation(profile.locationText);
+      
+      const coordinates = 
+        (profile.latitude && profile.longitude) 
+          ? null 
+          : await geocodeKnownLocation(profile.locationText);
 
       if (controller.signal.aborted) return;
 
@@ -428,15 +447,28 @@ export function OnboardingScreen() {
     <OnboardingShell>
       <div className="mx-auto flex min-h-[calc(100dvh-4rem)] w-full max-w-6xl flex-col px-6 py-10 lg:px-24">
         <div className="mx-auto grid w-full max-w-[840px] grid-cols-4 gap-3">
-          {steps.map((item, index) => (
-            <div
-              className={cn(
-                "h-3 rounded-full transition-colors",
-                index <= step ? "fora-spectrum-bar" : "bg-[#e8eaed]",
-              )}
-              key={item.eyebrow}
-            />
-          ))}
+          {steps.map((item, index) => {
+            const isActive = index <= step;
+            
+            return (
+              <div
+                key={item.eyebrow}
+                ref={(el) => { barRefs.current[index] = el; }}
+                className={cn(
+                  "h-3 rounded-full transition-colors",
+                  !isActive && "bg-[#e8eaed]",
+                )}
+                style={
+                  isActive
+                    ? {
+                        background: `linear-gradient(90deg, ${SPECTRUM_COLORS.join(", ")})`,
+                        backgroundSize: `${steps.length * 100}% 100%`,
+                      }
+                    : undefined
+                }
+              />
+            );
+          })}
         </div>
 
         <div className="grid flex-1 items-center pt-10">
