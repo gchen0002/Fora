@@ -5,14 +5,23 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "tsc --noEmit && vite build",
+    "worker:dev": "wrangler dev",
+    "worker:deploy": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 migrations apply fora-prod --local",
+    "db:migrate:remote": "wrangler d1 migrations apply fora-prod --remote",
+    "ingest:scrape": "node scripts/scrape-opportunities.mjs",
+    "ingest:push": "node scripts/scrape-opportunities.mjs --push",
+    "build": "tsc --noEmit && tsc -p tsconfig.worker.json --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
+    "@clerk/backend": "^3.4.9",
+    "@clerk/react": "^6.6.4",
     "@vitejs/plugin-react": "^5.0.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
+    "hono": "^4.12.19",
     "lucide-react": "^0.468.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -20,13 +29,17 @@
     "tailwind-merge": "^2.5.5"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260516.1",
     "@types/node": "^25.8.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.20",
+    "cheerio": "^1.2.0",
+    "dotenv": "^17.4.2",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2",
-    "vite": "^6.0.5"
+    "vite": "^6.0.5",
+    "wrangler": "^4.92.0"
   }
 }
