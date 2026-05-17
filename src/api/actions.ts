@@ -1,13 +1,18 @@
 import { apiUrl } from "./url";
+import { fetchWithTimeout } from "./request";
 
 type OpportunityAction = "save" | "dismiss" | "share" | "applied";
 
 export async function fetchSavedOpportunityIds(token: string) {
-  const response = await fetch(apiUrl("/api/actions/saved"), {
-    headers: {
-      Authorization: `Bearer ${token}`,
+  const response = await fetchWithTimeout(
+    apiUrl("/api/actions/saved"),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     },
-  });
+    "Saved opportunities request timed out.",
+  );
 
   if (!response.ok) {
     const detail = await response.text();
@@ -27,14 +32,18 @@ export async function recordOpportunityAction(
   opportunityId: string,
   action: OpportunityAction,
 ) {
-  const response = await fetch(apiUrl("/api/actions"), {
-    body: JSON.stringify({ opportunityId, action }),
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
+  const response = await fetchWithTimeout(
+    apiUrl("/api/actions"),
+    {
+      body: JSON.stringify({ opportunityId, action }),
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      method: "POST",
     },
-    method: "POST",
-  });
+    "Opportunity action request timed out.",
+  );
 
   if (!response.ok) {
     const detail = await response.text();
@@ -52,14 +61,18 @@ export async function deleteOpportunityAction(
   opportunityId: string,
   action: OpportunityAction,
 ) {
-  const response = await fetch(apiUrl("/api/actions"), {
-    body: JSON.stringify({ opportunityId, action }),
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
+  const response = await fetchWithTimeout(
+    apiUrl("/api/actions"),
+    {
+      body: JSON.stringify({ opportunityId, action }),
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      method: "DELETE",
     },
-    method: "DELETE",
-  });
+    "Opportunity action delete request timed out.",
+  );
 
   if (!response.ok) {
     const detail = await response.text();

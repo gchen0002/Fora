@@ -156,13 +156,20 @@ export function FeedOne() {
           throw new Error("Sign in again to refresh your session.");
         }
 
-        const [dailyResponse, exploreResponse, savedResponse] = await Promise.all([
+        const [dailyResponse, exploreResponse] = await Promise.all([
           fetchDailyStack(token),
           fetchExploreMore(token),
-          fetchSavedOpportunityIds(token),
         ]);
+        const savedResponse = await fetchSavedOpportunityIds(token).catch(() => ({
+          opportunityIds: [],
+        }));
 
         if (!cancelled) {
+          if (!dailyResponse.profileComplete || !exploreResponse.profileComplete) {
+            navigate("/onboarding", { replace: true });
+            return;
+          }
+
           setOpportunities(
             dedupeOpportunities([
               ...dailyResponse.stack,

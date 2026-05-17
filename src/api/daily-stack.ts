@@ -1,4 +1,5 @@
 import { apiUrl } from "./url";
+import { fetchWithTimeout } from "./request";
 
 export interface ApiStackOpportunity {
   id: string;
@@ -36,11 +37,15 @@ export interface ExploreMoreResponse {
 }
 
 export async function fetchDailyStack(token: string) {
-  const response = await fetch(apiUrl("/api/daily-stack"), {
-    headers: {
-      Authorization: `Bearer ${token}`,
+  const response = await fetchWithTimeout(
+    apiUrl("/api/daily-stack"),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     },
-  });
+    "Daily Stack request timed out. Check the Worker connection.",
+  );
 
   if (!response.ok) {
     const detail = await response.text();
@@ -56,11 +61,15 @@ export async function fetchDailyStack(token: string) {
 }
 
 export async function fetchExploreMore(token: string) {
-  const response = await fetch(apiUrl("/api/explore-more"), {
-    headers: {
-      Authorization: `Bearer ${token}`,
+  const response = await fetchWithTimeout(
+    apiUrl("/api/explore-more"),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     },
-  });
+    "Explore More request timed out. Check the Worker connection.",
+  );
 
   if (!response.ok) {
     const detail = await response.text();
