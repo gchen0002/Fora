@@ -1,3 +1,5 @@
+import { apiUrl } from "./url";
+
 export interface ApiStackOpportunity {
   id: string;
   title: string;
@@ -33,10 +35,8 @@ export interface ExploreMoreResponse {
   profileComplete: boolean;
 }
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
-
 export async function fetchDailyStack(token: string) {
-  const response = await fetch(`${apiBaseUrl}/api/daily-stack`, {
+  const response = await fetch(apiUrl("/api/daily-stack"), {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -56,7 +56,7 @@ export async function fetchDailyStack(token: string) {
 }
 
 export async function fetchExploreMore(token: string) {
-  const response = await fetch(`${apiBaseUrl}/api/explore-more`, {
+  const response = await fetch(apiUrl("/api/explore-more"), {
     headers: {
       Authorization: `Bearer ${token}`,
     },

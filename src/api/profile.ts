@@ -1,3 +1,5 @@
+import { apiUrl } from "./url";
+
 export interface UserProfile {
   displayName: string | null;
   locationText: string | null;
@@ -20,10 +22,8 @@ export interface ProfileResponse {
 
 export type ProfilePayload = Partial<UserProfile>;
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
-
 export async function fetchProfile(token: string) {
-  const response = await fetch(`${apiBaseUrl}/api/profile`, {
+  const response = await fetch(apiUrl("/api/profile"), {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -37,7 +37,7 @@ export async function fetchProfile(token: string) {
 }
 
 export async function saveProfile(token: string, profile: ProfilePayload) {
-  const response = await fetch(`${apiBaseUrl}/api/profile`, {
+  const response = await fetch(apiUrl("/api/profile"), {
     body: JSON.stringify(profile),
     headers: {
       Authorization: `Bearer ${token}`,
