@@ -7,12 +7,76 @@ import {
   MapPin,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { fetchProfile, saveProfile, type UserProfile } from "@/api/profile";
 import { geocodeKnownLocation } from "@/lib/geo";
 import { cn } from "@/lib/utils";
+
+/* ── Spectrum animation keyframes (shared with landing) ── */
+const SPECTRUM_STYLE_ID = "fora-spectrum-styles-onboarding";
+if (typeof document !== "undefined" && !document.getElementById(SPECTRUM_STYLE_ID)) {
+  const style = document.createElement("style");
+  style.id = SPECTRUM_STYLE_ID;
+  style.textContent = `
+    @keyframes spectrumShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes spectrumShiftReverse {
+      0%   { background-position: 100% 50%; }
+      50%  { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+    .fora-spectrum-text {
+      background: linear-gradient(
+        90deg,
+        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB,
+        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB
+      );
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: spectrumShift 4s ease infinite;
+    }
+    .fora-spectrum-bar {
+      background: linear-gradient(
+        90deg,
+        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB,
+        #CDB4DB, #FFB5A7
+      );
+      background-size: 300% 100%;
+      animation: spectrumShift 4s ease infinite;
+    }
+    .fora-spectrum-btn-hero {
+      border: 1.5px solid #e8eaed !important;
+      background: white !important;
+    }
+    .fora-spectrum-btn-hero:hover {
+      border-color: #B2C9AB !important;
+      box-shadow: 0 4px 18px rgba(178,201,171,0.3) !important;
+    }
+    .fora-spectrum-btn-hero .spectrum-label {
+      background: linear-gradient(
+        90deg,
+        #B2C9AB, #F4F1DE, #FFB5A7, #CDB4DB,
+        #B2C9AB, #F4F1DE, #FFB5A7, #CDB4DB
+      );
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: spectrumShiftReverse 6s ease infinite;
+    }
+    .fora-spectrum-btn-hero svg {
+      color: #CDB4DB;
+    }
+  `;
+  document.head.appendChild(style);
+}
 
 const goalOptions = [
   { label: "Hackathons", value: "hackathon" },
@@ -92,16 +156,28 @@ export function OnboardingScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
+  const saveControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      saveControllerRef.current?.abort();
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
 
     async function loadExistingProfile() {
       try {
         const token = await getToken();
         if (!token) throw new Error("Sign in again to refresh your session.");
 
-        const response = await fetchProfile(token);
+        if (cancelled) return;
+
+        const response = await fetchProfile(token, controller.signal);
         if (!cancelled && response.profile) {
           setProfile({
             ...initialProfile,
@@ -127,6 +203,7 @@ export function OnboardingScreen() {
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [getToken]);
 
@@ -303,6 +380,11 @@ export function OnboardingScreen() {
   }
 
   async function finishOnboarding() {
+    if (isSaving) return;
+
+    const controller = new AbortController();
+    saveControllerRef.current?.abort();
+    saveControllerRef.current = controller;
     setIsSaving(true);
     setError(null);
 
@@ -311,6 +393,8 @@ export function OnboardingScreen() {
       if (!token) throw new Error("Sign in again to refresh your session.");
       const coordinates = geocodeKnownLocation(profile.locationText);
 
+      if (controller.signal.aborted) return;
+
       await saveProfile(token, {
         ...profile,
         costSensitive: profile.accessNeedTags.includes("free"),
@@ -318,14 +402,25 @@ export function OnboardingScreen() {
         latitude: coordinates?.latitude ?? null,
         locationText: profile.locationText || null,
         longitude: coordinates?.longitude ?? null,
-      });
-      navigate("/feed", { replace: true });
+      }, controller.signal);
+
+      if (!controller.signal.aborted && isMountedRef.current) {
+        navigate("/feed", { replace: true });
+      }
     } catch (cause) {
+      if (controller.signal.aborted) return;
+
       setError(
         cause instanceof Error ? cause.message : "Could not build your stack.",
       );
     } finally {
-      setIsSaving(false);
+      if (saveControllerRef.current === controller) {
+        saveControllerRef.current = null;
+      }
+
+      if (!controller.signal.aborted && isMountedRef.current) {
+        setIsSaving(false);
+      }
     }
   }
 
@@ -356,7 +451,7 @@ export function OnboardingScreen() {
             <div
               className={cn(
                 "h-3 rounded-full transition-colors",
-                index <= step ? "bg-[#CDB4DB]" : "bg-[#e8eaed]",
+                index <= step ? "fora-spectrum-bar" : "bg-[#e8eaed]",
               )}
               key={item.eyebrow}
             />
@@ -407,22 +502,22 @@ export function OnboardingScreen() {
                 </button>
                 {canContinue ? (
                   <button
-                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#CDB4DB] px-6 text-sm font-medium text-[#202124] shadow-[0_4px_14px_rgba(205,180,219,0.38)] transition hover:shadow-lg active:scale-[0.98]"
+                    className="fora-spectrum-btn-hero inline-flex h-11 items-center gap-2 rounded-xl bg-white px-6 text-sm font-semibold transition active:scale-[0.98]"
                     onClick={() => setStep((value) => Math.min(value + 1, steps.length - 1))}
                     type="button"
                   >
-                    Continue
+                    <span className="spectrum-label">Continue</span>
                     <ArrowRight className="h-4 w-4" />
                   </button>
                 ) : (
                   <button
-                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#CDB4DB] px-6 text-sm font-medium text-[#202124] shadow-[0_4px_14px_rgba(205,180,219,0.38)] transition hover:shadow-lg active:scale-[0.98] disabled:opacity-70"
+                    className="fora-spectrum-btn-hero inline-flex h-11 items-center gap-2 rounded-xl bg-white px-6 text-sm font-semibold transition active:scale-[0.98] disabled:opacity-70"
                     disabled={isSaving}
                     onClick={finishOnboarding}
                     type="button"
                   >
                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                    Build my stack
+                    <span className="spectrum-label">Build my stack</span>
                     <ArrowRight className="h-4 w-4" />
                   </button>
                 )}
@@ -436,19 +531,22 @@ export function OnboardingScreen() {
 }
 
 function OnboardingShell({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
+
   return (
     <div className="relative min-h-[100dvh] overflow-hidden bg-white font-sans text-[#202124] selection:bg-[#CDB4DB]/20">
       <header className="flex h-16 items-center justify-between border-b border-[#e8eaed] bg-white/80 px-6 backdrop-blur-md lg:px-12">
-        <a
+        <button
           className="flex items-center gap-2 transition-opacity hover:opacity-75"
-          href="/"
           aria-label="Go to Fora home"
+          onClick={() => navigate("/")}
+          type="button"
         >
           <BrandDots />
-          <div className="text-lg font-medium tracking-tight text-[#202124]">
+          <div className="fora-spectrum-text text-lg font-medium tracking-tight">
             fora
           </div>
-        </a>
+        </button>
         <UserButton />
       </header>
       {children}

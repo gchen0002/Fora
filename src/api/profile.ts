@@ -22,11 +22,12 @@ export interface ProfileResponse {
 
 export type ProfilePayload = Partial<UserProfile>;
 
-export async function fetchProfile(token: string) {
+export async function fetchProfile(token: string, signal?: AbortSignal) {
   const response = await fetch(apiUrl("/api/profile"), {
     headers: {
       Authorization: `Bearer ${token}`,
     },
+    signal,
   });
 
   if (!response.ok) {
@@ -36,7 +37,11 @@ export async function fetchProfile(token: string) {
   return response.json() as Promise<ProfileResponse>;
 }
 
-export async function saveProfile(token: string, profile: ProfilePayload) {
+export async function saveProfile(
+  token: string,
+  profile: ProfilePayload,
+  signal?: AbortSignal,
+) {
   const response = await fetch(apiUrl("/api/profile"), {
     body: JSON.stringify(profile),
     headers: {
@@ -44,6 +49,7 @@ export async function saveProfile(token: string, profile: ProfilePayload) {
       "Content-Type": "application/json",
     },
     method: "PUT",
+    signal,
   });
 
   if (!response.ok) {

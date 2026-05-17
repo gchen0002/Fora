@@ -34,38 +34,48 @@ if (typeof document !== "undefined" && !document.getElementById(SPECTRUM_STYLE_I
       animation: spectrumShift 4s ease infinite;
     }
     .fora-spectrum-btn-nav {
-      background: linear-gradient(
-        90deg,
-        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB,
-        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB
-      ) !important;
-      background-size: 300% 100% !important;
-      -webkit-background-clip: text !important;
-      background-clip: text !important;
-      -webkit-text-fill-color: transparent !important;
-      animation: spectrumShift 3s ease infinite !important;
       border: 1.5px solid #e8eaed !important;
+      background: white !important;
     }
     .fora-spectrum-btn-nav:hover {
       border-color: #CDB4DB !important;
       box-shadow: 0 2px 12px rgba(205,180,219,0.25) !important;
     }
-    .fora-spectrum-btn-hero {
+    .fora-spectrum-btn-nav .spectrum-label {
       background: linear-gradient(
         90deg,
-        #B2C9AB, #F4F1DE, #FFB5A7, #CDB4DB,
-        #B2C9AB, #F4F1DE, #FFB5A7, #CDB4DB
-      ) !important;
-      background-size: 300% 100% !important;
-      -webkit-background-clip: text !important;
-      background-clip: text !important;
-      -webkit-text-fill-color: transparent !important;
-      animation: spectrumShiftReverse 6s ease infinite !important;
+        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB,
+        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB
+      );
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: spectrumShift 3s ease infinite;
+    }
+    .fora-spectrum-btn-hero {
       border: 1.5px solid #e8eaed !important;
+      background: white !important;
     }
     .fora-spectrum-btn-hero:hover {
       border-color: #B2C9AB !important;
       box-shadow: 0 4px 18px rgba(178,201,171,0.3) !important;
+    }
+    .fora-spectrum-btn-hero .spectrum-label {
+      background: linear-gradient(
+        90deg,
+        #B2C9AB, #F4F1DE, #FFB5A7, #CDB4DB,
+        #B2C9AB, #F4F1DE, #FFB5A7, #CDB4DB
+      );
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: spectrumShiftReverse 6s ease infinite;
+    }
+    .fora-spectrum-btn-hero svg,
+    .fora-spectrum-btn-nav svg {
+      color: #CDB4DB;
     }
   `;
   document.head.appendChild(style);
@@ -211,7 +221,7 @@ function Nav() {
             disabled
             type="button"
           >
-            Loading
+            <span className="spectrum-label">Loading</span>
           </button>
         ) : isSignedIn ? (
           <div className="flex items-center gap-3">
@@ -220,7 +230,7 @@ function Nav() {
               className="fora-spectrum-btn-nav rounded-lg bg-white px-6 py-2 text-sm font-semibold transition-all active:scale-[0.98]"
               type="button"
             >
-              Open feed
+              <span className="spectrum-label">Open feed</span>
             </button>
             <UserButton />
           </div>
@@ -230,7 +240,7 @@ function Nav() {
               className="fora-spectrum-btn-nav rounded-lg bg-white px-6 py-2 text-sm font-semibold transition-all active:scale-[0.98]"
               type="button"
             >
-              Sign in
+              <span className="spectrum-label">Sign in</span>
             </button>
           </SignInButton>
         )}
@@ -294,7 +304,7 @@ function LeftCopy() {
             disabled
             type="button"
           >
-            Loading
+            <span className="spectrum-label">Loading</span>
           </button>
         ) : isSignedIn ? (
           <button
@@ -302,7 +312,7 @@ function LeftCopy() {
             onClick={() => navigate("/feed")}
             type="button"
           >
-            Open your feed
+            <span className="spectrum-label">Open your feed</span>
           </button>
         ) : (
           <SignInButton mode="modal" forceRedirectUrl="/feed">
@@ -310,7 +320,7 @@ function LeftCopy() {
               className="fora-spectrum-btn-hero flex h-11 items-center gap-2 rounded-xl bg-white px-6 text-[15px] font-semibold transition-all active:scale-[0.98]"
               type="button"
             >
-              Start exploring
+              <span className="spectrum-label">Start exploring</span>
             </button>
           </SignInButton>
         )}
