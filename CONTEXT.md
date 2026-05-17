@@ -4,6 +4,10 @@
 
 A mobile-first opportunity discovery app for underrepresented and nontraditional tech learners.
 
+## Landing Page
+
+A short introduction to Fora whose primary job is to move a learner into Profile Onboarding or their existing Daily Stack. The Landing Page should not behave like a directory, docs page, or second navigation surface.
+
 ## Opportunity
 
 A tech-access program, scholarship, mentorship option, hackathon, internship, fellowship, coding workshop, or community that a learner could save, dismiss, share, or apply to.

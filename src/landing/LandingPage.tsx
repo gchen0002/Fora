@@ -1,6 +1,6 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { SignInButton, useAuth, UserButton } from "@clerk/react";
-import { Sparkles, Heart, ArrowUpRight, Bookmark, CalendarDays, MapPin } from "lucide-react";
+import { Sparkles, ArrowUpRight, Bookmark, CalendarDays, MapPin } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -34,44 +34,42 @@ if (typeof document !== "undefined" && !document.getElementById(SPECTRUM_STYLE_I
       animation: spectrumShift 4s ease infinite;
     }
     .fora-spectrum-btn-nav {
-      border: 1.5px solid #e8eaed !important;
-      background: white !important;
+      border: 1px solid rgba(255,255,255,0.72) !important;
+      background: linear-gradient(
+        100deg,
+        #CDB4DB 0%,
+        #FFB5A7 34%,
+        #F4F1DE 66%,
+        #B2C9AB 100%
+      ) !important;
+      box-shadow: 0 10px 28px rgba(205,180,219,0.32), 0 1px 0 rgba(255,255,255,0.85) inset;
     }
     .fora-spectrum-btn-nav:hover {
-      border-color: #CDB4DB !important;
-      box-shadow: 0 2px 12px rgba(205,180,219,0.25) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 14px 36px rgba(255,181,167,0.28), 0 1px 0 rgba(255,255,255,0.85) inset !important;
     }
     .fora-spectrum-btn-nav .spectrum-label {
-      background: linear-gradient(
-        90deg,
-        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB,
-        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB
-      );
-      background-size: 300% 100%;
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: spectrumShift 3s ease infinite;
+      color: #202124;
+      -webkit-text-fill-color: #202124;
     }
     .fora-spectrum-btn-hero {
-      border: 1.5px solid #e8eaed !important;
-      background: white !important;
+      border: 1px solid rgba(255,255,255,0.72) !important;
+      background: linear-gradient(
+        100deg,
+        #CDB4DB 0%,
+        #FFB5A7 34%,
+        #F4F1DE 66%,
+        #B2C9AB 100%
+      ) !important;
+      box-shadow: 0 16px 42px rgba(178,201,171,0.28), 0 1px 0 rgba(255,255,255,0.9) inset;
     }
     .fora-spectrum-btn-hero:hover {
-      border-color: #B2C9AB !important;
-      box-shadow: 0 4px 18px rgba(178,201,171,0.3) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 20px 52px rgba(205,180,219,0.3), 0 1px 0 rgba(255,255,255,0.9) inset !important;
     }
     .fora-spectrum-btn-hero .spectrum-label {
-      background: linear-gradient(
-        90deg,
-        #B2C9AB, #F4F1DE, #FFB5A7, #CDB4DB,
-        #B2C9AB, #F4F1DE, #FFB5A7, #CDB4DB
-      );
-      background-size: 300% 100%;
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: spectrumShiftReverse 6s ease infinite;
+      color: #202124;
+      -webkit-text-fill-color: #202124;
     }
     .fora-spectrum-btn-hero svg,
     .fora-spectrum-btn-nav svg {
@@ -90,6 +88,50 @@ const G = {
 
 const ease = [0.32, 0.72, 0, 1] as const;
 
+const categoryStyles: Record<
+  string,
+  {
+    marker: string;
+    label: string;
+    accent: string;
+    gradient: string;
+    focusLabel: string;
+  }
+> = {
+  hackathon: {
+    marker: "Hack",
+    label: "Hackathon",
+    accent: "#4f8cff",
+    gradient:
+      "radial-gradient(circle at 70% 20%, rgba(255,255,255,0.35), transparent 22%), linear-gradient(135deg, #1e40af 0%, #059669 48%, #ca8a04 100%)",
+    focusLabel: "Build window",
+  },
+  scholarship: {
+    marker: "Fund",
+    label: "Scholarship",
+    accent: "#f59e0b",
+    gradient:
+      "radial-gradient(circle at 30% 80%, rgba(255,255,255,0.18), transparent 22%), linear-gradient(150deg, #b45309 0%, #dc2626 40%, #9f1239 100%)",
+    focusLabel: "Deadline",
+  },
+  internship: {
+    marker: "Role",
+    label: "Internship",
+    accent: "#a855f7",
+    gradient:
+      "radial-gradient(circle at 25% 25%, rgba(255,255,255,0.2), transparent 20%), linear-gradient(160deg, #581c87 0%, #4338ca 50%, #0f172a 100%)",
+    focusLabel: "Role fit",
+  },
+  course: {
+    marker: "Learn",
+    label: "Course",
+    accent: "#22c55e",
+    gradient:
+      "radial-gradient(circle at 60% 15%, rgba(255,255,255,0.28), transparent 20%), linear-gradient(130deg, #064e3b 0%, #0e7490 55%, #1e293b 100%)",
+    focusLabel: "Session",
+  },
+};
+
 const SAMPLE_EVENTS = [
   {
     id: "venushacks",
@@ -98,7 +140,8 @@ const SAMPLE_EVENTS = [
     subtitle: "Build The Future",
     eventName: "VenusHacks 2026",
     host: "WICS",
-    tags: ["✨ Beginner Friendly", "💸 Free", "✈️ Travel Support"],
+    category: "hackathon",
+    tags: ["Beginner Friendly", "Free", "Travel Support"],
     month: "May",
     date: "24",
     fullDate: "Friday, May 24",
@@ -107,8 +150,10 @@ const SAMPLE_EVENTS = [
     guestNames: "Alice, Bob & Charlie",
     status: "Application Accepted",
     statusDesc: "A confirmation email has been sent",
-    gradient: `linear-gradient(135deg, ${G.blue}, ${G.red}cc)`,
-    iconColor: G.green
+    decisionHeadline: "In-person build sprint",
+    match: 85,
+    instantRead: "similar learners",
+    location: "Irvine, CA",
   },
   {
     id: "gracehopper",
@@ -117,7 +162,8 @@ const SAMPLE_EVENTS = [
     subtitle: "Celebration Grant",
     eventName: "GHC 2026 Scholarship",
     host: "AnitaB.org",
-    tags: ["🎓 Scholarship", "✈️ Travel Support", "👩‍💻 Women in Tech"],
+    category: "scholarship",
+    tags: ["Scholarship", "Travel Support", "Women in Tech"],
     month: "Oct",
     date: "12",
     fullDate: "Tuesday, Oct 12",
@@ -126,8 +172,10 @@ const SAMPLE_EVENTS = [
     guestNames: "Diana, Eva & Fay",
     status: "Saved to Stack",
     statusDesc: "Deadline approaching in 5 days",
-    gradient: `linear-gradient(135deg, ${G.green}, ${G.blue}cc)`,
-    iconColor: G.blue
+    decisionHeadline: "Funding opportunity",
+    match: 92,
+    instantRead: "high-fit",
+    location: "Remote",
   },
   {
     id: "outintech",
@@ -136,7 +184,8 @@ const SAMPLE_EVENTS = [
     subtitle: "Mentorship Program",
     eventName: "Fall Mentorship Cohort",
     host: "Out in Tech",
-    tags: ["🏳️‍🌈 LGBTQ+ Tech", "🤝 Mentorship", "💻 Remote"],
+    category: "internship",
+    tags: ["LGBTQ+ Tech", "Mentorship", "Remote"],
     month: "Sep",
     date: "01",
     fullDate: "Monday, Sep 01",
@@ -145,8 +194,10 @@ const SAMPLE_EVENTS = [
     guestNames: "George, Helen & Ian",
     status: "Application Open",
     statusDesc: "High match based on your goals",
-    gradient: `linear-gradient(135deg, ${G.red}, ${G.yellow}cc)`,
-    iconColor: G.red
+    decisionHeadline: "Early-career role",
+    match: 78,
+    instantRead: "role alignment",
+    location: "Remote",
   },
   {
     id: "codepath",
@@ -155,7 +206,8 @@ const SAMPLE_EVENTS = [
     subtitle: "Intro to iOS Dev",
     eventName: "Fall 2026 Course",
     host: "CodePath",
-    tags: ["✨ Beginner Friendly", "🏫 Course", "💸 Free"],
+    category: "course",
+    tags: ["Beginner Friendly", "Course", "Free"],
     month: "Sep",
     date: "15",
     fullDate: "Tuesday, Sep 15",
@@ -164,8 +216,10 @@ const SAMPLE_EVENTS = [
     guestNames: "Jack, Kelly & Liam",
     status: "High Fit",
     statusDesc: "Matches your interest in Mobile Dev",
-    gradient: `linear-gradient(135deg, ${G.yellow}, ${G.green}cc)`,
-    iconColor: G.yellow
+    decisionHeadline: "Course path",
+    match: 95,
+    instantRead: "skill building",
+    location: "Virtual",
   }
 ];
 
@@ -209,12 +263,6 @@ function Nav() {
       </div>
 
       <div className="flex items-center gap-6 text-[13px] font-normal text-[#5f6368]">
-        <span className="hidden sm:block">
-          <Clock />
-        </span>
-        <a href="#" className="hidden transition-colors hover:text-[#202124] sm:block">
-          Discover Events
-        </a>
         {!isLoaded ? (
           <button
             className="fora-spectrum-btn-nav rounded-lg bg-white px-6 py-2 text-sm font-semibold opacity-70"
@@ -249,7 +297,7 @@ function Nav() {
   );
 }
 
-function Clock() {
+function PhoneStatusBar() {
   const [time, setTime] = useState("");
 
   useEffect(() => {
@@ -258,16 +306,36 @@ function Clock() {
         new Date().toLocaleTimeString("en-US", {
           hour: "numeric",
           minute: "2-digit",
-          timeZoneName: "short",
-        })
+        }),
       );
     }
+
     update();
-    const id = setInterval(update, 60000);
+    const id = setInterval(update, 30_000);
+
     return () => clearInterval(id);
   }, []);
 
-  return <span>{time}</span>;
+  return (
+    <div className="relative z-30 flex h-12 items-center justify-between px-6 pt-2">
+      <span className="min-w-10 text-[10px] font-semibold text-white/80">
+        {time || "9:41"}
+      </span>
+      <div className="absolute left-1/2 top-2 h-[22px] w-[80px] -translate-x-1/2 rounded-full bg-black" />
+      <div className="flex items-end gap-1.5 text-white/70">
+        <div className="flex h-3 items-end gap-[2px]" aria-hidden="true">
+          <span className="h-[4px] w-[2px] rounded-full bg-current" />
+          <span className="h-[6px] w-[2px] rounded-full bg-current" />
+          <span className="h-[8px] w-[2px] rounded-full bg-current" />
+          <span className="h-[10px] w-[2px] rounded-full bg-current" />
+        </div>
+        <div className="relative h-[7px] w-[15px] rounded-[2px] border border-current" aria-hidden="true">
+          <div className="absolute bottom-[1px] left-[1px] top-[1px] w-[10px] rounded-[1px] bg-current" />
+          <div className="absolute -right-[3px] top-1/2 h-[3px] w-[2px] -translate-y-1/2 rounded-r bg-current" />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function LeftCopy() {
@@ -290,7 +358,7 @@ function LeftCopy() {
         transition={{ duration: 0.7, ease }}
         className="mt-8 max-w-[500px] text-lg leading-relaxed text-[#5f6368] sm:text-xl lg:text-2xl"
       >
-        Spend 5 minutes a day discovering hackathons, scholarships, and communities that actually fit your goals. No insider network required.
+        A daily stack of hackathons, scholarships, and communities matched to your goals.
       </motion.p>
 
       <motion.div
@@ -324,9 +392,6 @@ function LeftCopy() {
             </button>
           </SignInButton>
         )}
-        <button className="flex h-11 items-center gap-2 rounded-xl border border-[#dadce0] px-6 text-[14px] font-medium text-[#5f6368] transition-all hover:bg-[#f8f9fa] active:scale-[0.98]">
-          Learn more
-        </button>
       </motion.div>
     </motion.div>
   );
@@ -393,6 +458,7 @@ function TypewriterHeading() {
 export function RightVisual() {
   const phoneRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState(1);
 
   useEffect(() => {
     const el = phoneRef.current;
@@ -413,40 +479,42 @@ export function RightVisual() {
 
   useEffect(() => {
     const interval = setInterval(() => {
+      setDirection(1);
       setCurrentIndex((prev) => (prev + 1) % SAMPLE_EVENTS.length);
-    }, 5000);
+    }, 4400);
     return () => clearInterval(interval);
   }, []);
 
   const event = SAMPLE_EVENTS[currentIndex];
+  const style = categoryStyles[event.category];
 
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9, y: 60 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ duration: 1.2, ease, delay: 0.5 }}
-      className="relative flex w-full items-center justify-center py-8"
+      className="relative flex min-h-[720px] w-full items-center justify-center py-8"
     >
       {/* Decorative orbit rings */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-          className="absolute h-[520px] w-[520px] rounded-full border border-dashed border-[#CDB4DB]/40"
+          className="absolute h-[500px] w-[500px] rounded-full border border-dashed border-[#CDB4DB]/30"
         />
         <motion.div
           animate={{ rotate: -360 }}
           transition={{ duration: 80, repeat: Infinity, ease: "linear" }}
-          className="absolute h-[680px] w-[680px] rounded-full border border-dashed border-[#B2C9AB]/30"
+          className="absolute h-[650px] w-[650px] rounded-full border border-dashed border-[#B2C9AB]/25"
         />
       </div>
 
       {/* Stacked ghost cards behind phone */}
-      <div className="absolute left-0 top-1/2 z-0 -translate-y-1/2 sm:left-[-20px]">
+      <div className="hidden">
         <motion.div
-          animate={{ y: [0, -6, 0], rotate: [-18, -16, -18] }}
+          animate={{ y: [0, -8, 0], rotate: [-18, -15, -18] }}
           transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          className="space-y-[-160px]"
+          className="space-y-[-150px]"
         >
           {[0.15, 0.25, 0.4].map((opacity, i) => (
             <div
@@ -454,8 +522,8 @@ export function RightVisual() {
               className="h-[180px] w-[100px] rounded-2xl shadow-lg sm:h-[200px] sm:w-[120px]"
               style={{
                 background: `linear-gradient(135deg, ${[G.green, G.blue, G.red][i]}88, #0a0d14cc)`,
-                opacity,
-                transform: `rotate(${-8 + i * 3}deg) translateX(${i * 8}px)`,
+                opacity: opacity * 0.75,
+                transform: `rotate(${-8 + i * 3}deg) translateX(${i * 10}px)`,
               }}
             />
           ))}
@@ -466,15 +534,7 @@ export function RightVisual() {
       <div ref={phoneRef} className="relative z-10 h-[580px] w-[290px] sm:h-[620px] sm:w-[310px]">
         <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[2.8rem] border-[3px] border-[#1a1a1a] bg-[#0a0d14] shadow-[0_30px_80px_rgba(0,0,0,0.45),0_0_0_1px_rgba(255,255,255,0.05)]">
           {/* Status bar */}
-          <div className="relative z-30 flex h-12 items-center justify-between px-6 pt-2">
-            <span className="text-[10px] font-semibold text-white/70">9:41</span>
-            <div className="absolute left-1/2 top-2 h-[22px] w-[80px] -translate-x-1/2 rounded-full bg-black" />
-            <div className="flex items-center gap-1">
-              <div className="h-[6px] w-[6px] rounded-full bg-white/50" />
-              <div className="h-[8px] w-[3px] rounded-[1px] bg-white/50" />
-              <div className="h-[6px] w-[10px] rounded-[2px] border border-white/50 bg-transparent" />
-            </div>
-          </div>
+          <PhoneStatusBar />
 
           {/* Category tabs */}
           <div className="relative z-20 flex gap-1.5 overflow-hidden px-4 py-2">
@@ -494,92 +554,160 @@ export function RightVisual() {
           </div>
 
           {/* Card content — scrolling through events */}
-          <div className="relative min-h-0 flex-1 overflow-hidden">
-            <motion.div
-              key={event.id}
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -40 }}
-              transition={{ duration: 0.6, ease }}
-              className="flex h-full flex-col"
-            >
-              {/* Dark gradient hero area */}
-              <div
-                className="relative mx-3 flex h-[200px] flex-col items-start justify-end overflow-hidden rounded-2xl p-4 sm:h-[220px]"
-                style={{ background: event.gradient }}
+          <div className="relative min-h-0 flex-1 overflow-hidden bg-black text-white">
+            <AnimatePresence initial={false} custom={direction}>
+              <motion.div
+                key={event.id}
+                custom={direction}
+                initial={{ opacity: 0, y: direction * 520 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: direction * -520 }}
+                transition={{ duration: 0.76, ease }}
+                className="absolute inset-0 flex h-full w-full flex-col overflow-hidden bg-black"
+                style={{ willChange: "transform, opacity" }}
               >
-                {/* Shimmer */}
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent"
-                  animate={{ x: ["-100%", "100%"] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "linear", repeatDelay: 3 }}
-                />
-                {/* Match badge */}
-                <span className="relative z-10 mb-3 rounded-full bg-[#22c55e]/90 px-2.5 py-1 text-[9px] font-bold text-white">
-                  {event.status === "High Fit" ? "85" : "70"}% match
-                </span>
-                {/* Tags */}
-                <div className="relative z-10 mb-2 flex flex-wrap gap-1">
-                  {event.tags.slice(0, 3).map((tag, i) => (
-                    <span
-                      key={i}
-                      className="rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[7px] font-bold uppercase tracking-wider text-white/90 backdrop-blur-sm"
-                    >
-                      {tag.replace(/[^\\w\\s-]/g, "").trim()}
-                    </span>
-                  ))}
-                </div>
-                {/* Title */}
-                <h2 className="relative z-10 text-[2rem] font-bold leading-[0.95] tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
-                  {event.eventName.split(" ").slice(0, 2).join(" ")}
-                </h2>
-                <p className="relative z-10 mt-1.5 flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-[0.2em] text-white/60">
-                  <Sparkles className="h-2.5 w-2.5" />
-                  {event.tags[0]?.replace(/[^\\w\\s-]/g, "").trim()} • Free
-                </p>
-              </div>
+              {/* Dark gradient hero area */}
+              <motion.div
+                className="absolute inset-0"
+                initial={{ scale: 1.06 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 1.1, ease }}
+                style={{ background: style.gradient }}
+              />
+              <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.12),rgba(0,0,0,0.28)_35%,rgba(0,0,0,0.85)_100%)]" />
 
-              {/* Bottom info card */}
-              <div className="mx-3 mt-3 rounded-2xl border border-white/8 bg-white p-3.5">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 rounded-lg bg-[#f1f5f9] px-2.5 py-2 text-[9px] font-semibold text-[#1e293b]">
-                    <CalendarDays className="h-3 w-3 text-[#64748b]" />
-                    {event.fullDate.split(",")[1]?.trim() ?? event.fullDate}
+              <div className="relative z-10 mx-auto flex h-full w-full flex-col items-center px-4 pb-4 pt-4 sm:px-5">
+                <motion.div
+                  className="flex min-h-0 flex-1 flex-col items-center justify-end pb-3 text-center"
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.14, duration: 0.55, ease }}
+                >
+                  {/* Category badges */}
+                  <div className="mb-3 flex flex-wrap items-center justify-center gap-1.5">
+                    <span
+                      className="rounded-full border px-2 py-0.5 text-[0.45rem] font-bold uppercase tracking-[0.22em] text-white"
+                      style={{
+                        background: style.accent,
+                        borderColor: `${style.accent}88`,
+                        boxShadow: `0 0 12px ${style.accent}44`,
+                      }}
+                    >
+                      {style.marker}
+                    </span>
+                    <span className="rounded-full border border-white/12 bg-white/10 px-2 py-0.5 text-[0.5rem] font-semibold text-white/90 backdrop-blur-lg">
+                      {style.label}
+                    </span>
+                    <span className="rounded-full border border-white/12 bg-white/10 px-2 py-0.5 text-[0.5rem] font-semibold text-white/90 backdrop-blur-lg">
+                      {event.match}% match
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2 rounded-lg bg-[#f1f5f9] px-2.5 py-2 text-[9px] font-semibold text-[#1e293b]">
-                    <MapPin className="h-3 w-3 text-[#64748b]" />
-                    Remote
-                  </div>
-                </div>
-                <div className="mt-2.5 flex flex-wrap gap-1">
-                  {["beginner-friendly", event.tags[0]?.replace(/[^\\w\\s-]/g, "").trim().toLowerCase() || "hackathon", "remote"].map(
-                    (tag, i) => (
-                      <span
-                        key={i}
-                        className="rounded-full bg-[#f1f5f9] px-2 py-0.5 text-[7px] font-semibold text-[#475569]"
-                      >
-                        # {tag}
-                      </span>
-                    )
-                  )}
-                  <span className="rounded-full bg-[#f1f5f9] px-2 py-0.5 text-[7px] font-semibold text-[#94a3b8]">
-                    +2
-                  </span>
-                </div>
-                <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
-                  <div
-                    className="flex h-10 items-center justify-center gap-1.5 rounded-xl text-[11px] font-bold text-white shadow-[0_4px_14px_rgba(79,140,255,0.4)]"
-                    style={{ background: "#4f8cff" }}
+
+                  {/* Instant-read eyebrow */}
+                  <p
+                    className="mb-2 flex items-center justify-center gap-1.5 text-[0.5rem] uppercase tracking-[0.24em] text-white/55"
+                    style={{ fontFamily: "'DM Mono', monospace" }}
                   >
-                    Apply
-                    <ArrowUpRight className="h-3 w-3" />
+                    <Sparkles className="h-2 w-2" />
+                    {style.label} - {event.instantRead}
+                  </p>
+
+                  {/* Title */}
+                  <h2
+                    className="text-[2.2rem] font-bold leading-[0.92] tracking-tight sm:text-[2.6rem]"
+                    style={{
+                      fontFamily: "'Space Grotesk', sans-serif",
+                      textShadow: "0 4px 16px rgba(0,0,0,0.5)",
+                    }}
+                  >
+                    {event.eventName}
+                  </h2>
+
+                  {/* Description */}
+                  <p className="mt-2.5 max-w-[28ch] text-[0.65rem] font-medium leading-relaxed text-white/72">
+                    {event.subtitle} - {event.host}
+                  </p>
+                </motion.div>
+
+                {/* Bottom info card */}
+                <motion.div
+                  className="w-full overflow-hidden rounded-[1rem] border border-white/8 bg-white text-left shadow-[0_16px_50px_rgba(0,0,0,0.4)]"
+                  initial={{ opacity: 0, y: 26 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.22, duration: 0.5, ease }}
+                >
+                  {/* Accent strip */}
+                  <div className="h-1" style={{ background: style.accent }} />
+
+                  <div className="p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p
+                          className="text-[0.45rem] font-medium uppercase tracking-[0.2em]"
+                          style={{ color: style.accent, fontFamily: "'DM Mono', monospace" }}
+                        >
+                          {style.focusLabel}
+                        </p>
+                        <h3
+                          className="mt-1 text-[0.9rem] font-bold leading-tight text-[#0a0d14]"
+                          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                        >
+                          {event.decisionHeadline}
+                        </h3>
+                      </div>
+                      <div
+                        className="shrink-0 rounded-full px-1.5 py-0.5 text-[0.45rem] font-semibold text-white"
+                        style={{
+                          background: style.accent,
+                          fontFamily: "'DM Mono', monospace",
+                        }}
+                      >
+                        {currentIndex + 1}/{SAMPLE_EVENTS.length}
+                      </div>
+                    </div>
+
+                    <div className="mt-2.5 grid grid-cols-2 gap-1.5">
+                      <div className="flex min-w-0 items-center gap-1.5 rounded-lg bg-[#f1f5f9] px-2 py-1.5 text-[0.5rem] font-semibold text-[#1e293b]">
+                        <CalendarDays className="h-2.5 w-2.5 shrink-0 text-[#64748b]" />
+                        <span className="truncate font-mono">{event.fullDate.split(",")[1]?.trim() ?? event.fullDate}</span>
+                      </div>
+                      <div className="flex min-w-0 items-center gap-1.5 rounded-lg bg-[#f1f5f9] px-2 py-1.5 text-[0.5rem] font-semibold text-[#1e293b]">
+                        <MapPin className="h-2.5 w-2.5 shrink-0 text-[#64748b]" />
+                        <span className="truncate font-mono">{event.location}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {event.tags.map((tag, i) => (
+                        <span
+                          key={i}
+                          className="rounded-full bg-[#1e293b]/8 px-1.5 py-0.5 text-[0.5rem] font-semibold text-[#334155]"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-[1fr_auto] gap-1.5">
+                      <div
+                        className="flex h-[2rem] items-center justify-center gap-1.5 rounded-xl text-[0.65rem] font-bold text-white transition active:scale-[0.97]"
+                        style={{
+                          background: style.accent,
+                          boxShadow: `0 4px 14px ${style.accent}55`,
+                        }}
+                      >
+                        Apply
+                        <ArrowUpRight className="h-3 w-3" />
+                      </div>
+                      <div className="grid h-[2rem] w-[2rem] place-items-center rounded-xl border border-[#d1d9e2] bg-[#f8fafc] text-[#334155] transition active:scale-[0.97]">
+                        <Bookmark className="h-3.5 w-3.5" />
+                      </div>
+                    </div>
                   </div>
-                  <div className="grid h-10 w-10 place-items-center rounded-xl border border-[#e2e8f0] bg-[#f8fafc]">
-                    <Bookmark className="h-4 w-4 text-[#94a3b8]" />
-                  </div>
-                </div>
+                </motion.div>
               </div>
-            </motion.div>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </div>
@@ -590,7 +718,7 @@ export function RightVisual() {
       <motion.div
         animate={{ y: [-4, 6, -4], rotate: [-6, -3, -6] }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute left-[-10px] top-16 z-20 flex items-center gap-2.5 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-[#e8eaed] sm:left-[-30px]"
+        className="absolute left-[6%] top-[12%] z-20 hidden items-center gap-2.5 rounded-2xl border border-[#e8eaed] bg-white px-3.5 py-2.5 shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:flex lg:left-[2%]"
       >
         <div className="grid h-9 w-9 place-items-center rounded-xl" style={{ background: `${G.red}18` }}>
           <CalendarDays className="h-4 w-4" style={{ color: G.red }} />
@@ -605,7 +733,7 @@ export function RightVisual() {
       <motion.div
         animate={{ y: [3, -5, 3], rotate: [4, 8, 4] }}
         transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-20 left-[-10px] z-20 flex items-center gap-2 rounded-2xl bg-white px-3.5 py-2.5 shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-[#e8eaed] sm:left-0"
+        className="absolute bottom-[12%] left-[8%] z-20 hidden items-center gap-2 rounded-2xl border border-[#e8eaed] bg-white px-3.5 py-2.5 shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:flex lg:left-[6%]"
       >
         <div className="grid h-8 w-8 place-items-center rounded-lg bg-[#7c3aed]/10">
           <Bookmark className="h-4 w-4 text-[#7c3aed]" />
@@ -617,7 +745,7 @@ export function RightVisual() {
       <motion.div
         animate={{ y: [-5, 5, -5] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute right-[-10px] top-12 z-20 flex h-24 w-24 flex-col items-center justify-center rounded-full bg-white shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-[#e8eaed] sm:right-[-20px]"
+        className="absolute right-[6%] top-[9%] z-20 hidden h-24 w-24 flex-col items-center justify-center rounded-full border border-[#e8eaed] bg-white shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:flex lg:right-[2%]"
       >
         {/* SVG ring */}
         <svg className="absolute inset-0" viewBox="0 0 96 96">
@@ -637,51 +765,49 @@ export function RightVisual() {
       <motion.div
         animate={{ y: [3, -4, 3] }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute right-[-20px] top-[55%] z-20 flex items-center gap-1.5 sm:right-[-40px]"
+        className="hidden"
       >
-        <span className="rounded-full border border-[#4f8cff]/30 bg-[#4f8cff]/10 px-3 py-1.5 text-[10px] font-bold text-[#4f8cff]">
+        <span className="rounded-full border border-[#4f8cff]/30 bg-white/90 px-3 py-1.5 text-center text-[10px] font-bold text-[#4f8cff] shadow-[0_8px_24px_rgba(0,0,0,0.06)] backdrop-blur-md">
           Hackathon
         </span>
-        <span className="rounded-full border border-[#f59e0b]/30 bg-[#f59e0b]/10 px-3 py-1.5 text-[10px] font-bold text-[#f59e0b]">
+        <span className="rounded-full border border-[#f59e0b]/30 bg-white/90 px-3 py-1.5 text-center text-[10px] font-bold text-[#f59e0b] shadow-[0_8px_24px_rgba(0,0,0,0.06)] backdrop-blur-md">
           Scholarship
         </span>
-        <span className="rounded-full border border-[#22c55e]/30 bg-[#22c55e]/10 px-3 py-1.5 text-[10px] font-bold text-[#22c55e]">
+        <span className="rounded-full border border-[#22c55e]/30 bg-white/90 px-3 py-1.5 text-center text-[10px] font-bold text-[#22c55e] shadow-[0_8px_24px_rgba(0,0,0,0.06)] backdrop-blur-md">
           Internship
         </span>
       </motion.div>
 
       {/* Location pin — right lower */}
       <motion.div
-        animate={{ y: [-3, 5, -3] }}
-        transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-1/3 right-8 z-20 flex items-center gap-1.5 rounded-xl bg-white px-2.5 py-2 shadow-[0_8px_20px_rgba(0,0,0,0.06)] border border-[#e8eaed] sm:right-2"
+        key={event.location}
+        initial={{ opacity: 0, y: 10, scale: 0.96 }}
+        animate={{ opacity: 1, y: [-3, 5, -3], scale: 1 }}
+        exit={{ opacity: 0, y: 10, scale: 0.96 }}
+        transition={{
+          opacity: { duration: 0.22 },
+          scale: { duration: 0.22 },
+          y: { duration: 4.5, repeat: Infinity, ease: "easeInOut" },
+        }}
+        className="absolute bottom-[35%] right-[5%] z-20 hidden items-center gap-2 rounded-2xl border border-[#e8eaed] bg-white px-3 py-2 shadow-[0_8px_20px_rgba(0,0,0,0.06)] md:flex lg:right-[3%]"
       >
-        <MapPin className="h-4 w-4 text-[#22c55e]" />
+        <MapPin className="h-4 w-4 shrink-0 text-[#22c55e]" />
+        <span className="max-w-[92px] truncate text-[11px] font-bold text-[#1e293b]">
+          {event.location}
+        </span>
       </motion.div>
 
       {/* Profile icon — bottom right */}
       <motion.div
         animate={{ y: [2, -4, 2] }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-16 right-2 z-20 grid h-11 w-11 place-items-center rounded-2xl bg-white shadow-[0_8px_20px_rgba(0,0,0,0.06)] border border-[#e8eaed] sm:right-[-10px]"
+        className="hidden"
       >
         <svg className="h-5 w-5 text-[#CDB4DB]" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
         </svg>
       </motion.div>
 
-      {/* Dot indicators for current event */}
-      <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5">
-        {SAMPLE_EVENTS.map((_, i) => (
-          <div
-            key={i}
-            className={cn(
-              "h-1.5 rounded-full transition-all duration-300",
-              i === currentIndex ? "w-4 bg-[#CDB4DB]" : "w-1.5 bg-[#d1d5db]"
-            )}
-          />
-        ))}
-      </div>
     </motion.div>
   );
 }
