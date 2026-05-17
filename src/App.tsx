@@ -5,14 +5,14 @@ import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 
 import { fetchProfile } from "@/api/profile";
 import { FeedOne } from "@/components/feeds/FeedOne";
-import { VariationOne } from "@/components/variations/VariationOne";
+import { LandingPage } from "@/landing/LandingPage";
 import { OnboardingScreen } from "@/onboarding/OnboardingScreen";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<VariationOne />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/onboarding" element={<OnboardingRoute />} />
         <Route path="/goal" element={<FeedRoute />} />
         <Route path="/stack" element={<FeedRoute />} />
@@ -26,7 +26,7 @@ function FeedRoute() {
   return (
     <>
       <Show when="signed-out">
-        <VariationOne />
+        <LandingPage />
       </Show>
       <Show when="signed-in">
         <ProfileGate>
@@ -41,7 +41,7 @@ function OnboardingRoute() {
   return (
     <>
       <Show when="signed-out">
-        <VariationOne />
+        <LandingPage />
       </Show>
       <Show when="signed-in">
         <OnboardingScreen />

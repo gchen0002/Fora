@@ -22,6 +22,30 @@ const trustedDomainHints = [
   "mlt.org",
   "rewritingthecode.org",
   "recurse.com",
+  "code2040.org",
+  "colorstack.org",
+  "outreachy.org",
+  "ncwit.org",
+  "persevere.org",
+  "perscholas.org",
+  "generation.org",
+  "djangogirls.org",
+  "blackgirlscode.com",
+  "technolochicas.org",
+  "latinasintech.org",
+  "lesbianswhotech.org",
+  "o4u.org",
+  "ada-developers-academy.org",
+  "yearup.org",
+  "hackclub.com",
+  "bitwiseindustries.com",
+  "codethedream.org",
+  "roadtohire.org",
+  "breakthroughtech.org",
+  "girlsintech.org",
+  "womenwhocode.com",
+  "ai-4-all.org",
+  "kodewithklossy.com",
 ];
 
 const opportunityKeywords = [
@@ -63,7 +87,7 @@ const unrelatedKeywords = [
   "gambling",
   "forex",
   "crypto giveaway",
-  "adult",
+  "adult content",
   "miracle cure",
   "weight loss",
   "essay writing service",
@@ -286,7 +310,7 @@ function safeHost(url) {
 }
 
 function mentionsEventTiming(text) {
-  return /\b(today|tomorrow|tonight|deadline|apply by|register by|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\d{4})\b/i.test(
+  return /\b(today|tomorrow|tonight|deadline|apply by|register by|rolling|ongoing|year-round|open application|applications open|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\d{4})\b/i.test(
     text,
   );
 }

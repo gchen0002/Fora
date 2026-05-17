@@ -1,4 +1,6 @@
 import * as cheerio from "cheerio";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 
 import {
   createEvaluation,
@@ -9,6 +11,18 @@ import {
 import { parseGenericPageOpportunity } from "./page-parser.mjs";
 
 export async function runSourceAdapter(source) {
+  if (source.type === "curated-json") {
+    return scrapeCuratedJson(source);
+  }
+
+  if (source.type === "rss-feed") {
+    return scrapeRssFeed(source);
+  }
+
+  if (source.type === "ics-calendar") {
+    return scrapeIcsCalendar(source);
+  }
+
   if (source.type === "mlh-season") {
     return scrapeMlhSeason(source);
   }
@@ -26,6 +40,152 @@ export async function runSourceAdapter(source) {
   }
 
   throw new Error(`Unsupported source type: ${source.type}`);
+}
+
+async function scrapeCuratedJson(source) {
+  const raw = source.url.startsWith("http")
+    ? await fetchHtml(source.url)
+    : await readFile(resolve(source.url), "utf8");
+  const records = JSON.parse(raw);
+  const opportunities = Array.isArray(records) ? records : records.opportunities ?? [];
+
+  return opportunities.map((record) =>
+    createEvaluation({
+      opportunity: normalizeCuratedOpportunity(record, source),
+      pageText: [
+        record.title,
+        record.organization,
+        record.description,
+        record.category,
+        ...(record.eligibility_tags ?? []),
+        ...(record.accessibility_tags ?? []),
+        ...(record.topic_tags ?? []),
+        ...(record.experience_level_tags ?? []),
+      ].join(" "),
+      parseNotes: ["Loaded from curated JSON seed feed."],
+      source,
+    }),
+  );
+}
+
+async function scrapeRssFeed(source) {
+  const xml = await fetchHtml(source.url);
+  const $ = cheerio.load(xml, { xmlMode: true });
+  const parsed = [];
+
+  $("item, entry").each((_, element) => {
+    const item = $(element);
+    const title = firstText(item, "title") || source.name;
+    const link =
+      firstText(item, "link") ||
+      item.find("link").attr("href") ||
+      source.url;
+    const description = normalizeWhitespace(
+      firstText(item, "description") ||
+        firstText(item, "summary") ||
+        firstText(item, "content\\:encoded") ||
+        `Opportunity from ${source.name}.`,
+    );
+    const published = firstText(item, "pubDate") || firstText(item, "updated");
+    const text = `${title} ${description}`;
+    const lowerText = text.toLowerCase();
+
+    if (!looksLikeOpportunity(lowerText, source)) return;
+
+    parsed.push({
+      opportunity: {
+        id: slugify(`${source.source}-${link}`),
+        title: normalizeWhitespace(title),
+        organization: source.organization ?? source.name,
+        description: description.slice(0, 420),
+        url: new URL(link, source.url).toString(),
+        source: source.source,
+        category: source.category ?? inferCategory(lowerText),
+        location_text: source.location_text ?? inferLocation(lowerText),
+        latitude: source.latitude ?? null,
+        longitude: source.longitude ?? null,
+        is_remote: source.is_remote ?? /\b(remote|online|virtual)\b/i.test(text),
+        deadline: parseDate(source.deadline ?? published),
+        cost: lowerText.includes("free") ? "Free" : source.cost ?? null,
+        eligibility_tags: compactUnique([
+          ...(source.eligibility_tags ?? []),
+          ...inferEligibilityTags(lowerText),
+        ]),
+        accessibility_tags: compactUnique([
+          ...(source.accessibility_tags ?? []),
+          ...inferAccessTags(lowerText),
+        ]),
+        topic_tags: compactUnique([
+          ...(source.topic_tags ?? []),
+          ...inferTopicTags(lowerText),
+        ]),
+        experience_level_tags: compactUnique([
+          ...(source.experience_level_tags ?? []),
+          ...inferExperienceTags(lowerText),
+        ]),
+        image_url: null,
+        image_kind: "unknown",
+      },
+      pageText: text,
+      parseNotes: ["Parsed from RSS/Atom feed item."],
+    });
+  });
+
+  return parsed.map((item) => createEvaluation({ ...item, source }));
+}
+
+async function scrapeIcsCalendar(source) {
+  const text = await fetchHtml(source.url);
+  const events = parseIcsEvents(text);
+
+  return events
+    .filter((event) => event.summary && !isPastDate(event.end ?? event.start))
+    .map((event) => {
+      const combinedText = `${event.summary} ${event.description} ${event.location}`;
+      const lowerText = combinedText.toLowerCase();
+      const url = event.url || source.event_url || source.url;
+
+      return createEvaluation({
+        opportunity: {
+          id: slugify(`${source.source}-${event.uid || event.summary}-${event.start}`),
+          title: normalizeWhitespace(event.summary),
+          organization: source.organization ?? source.name,
+          description: normalizeWhitespace(
+            event.description || `${source.name} calendar event.`,
+          ).slice(0, 420),
+          url,
+          source: source.source,
+          category: source.category ?? inferCategory(lowerText),
+          location_text: event.location || source.location_text || inferLocation(lowerText),
+          latitude: source.latitude ?? null,
+          longitude: source.longitude ?? null,
+          is_remote: source.is_remote ?? /\b(remote|online|virtual|zoom)\b/i.test(combinedText),
+          deadline: event.start,
+          cost: lowerText.includes("free") ? "Free" : source.cost ?? null,
+          eligibility_tags: compactUnique([
+            ...(source.eligibility_tags ?? []),
+            ...inferEligibilityTags(lowerText),
+          ]),
+          accessibility_tags: compactUnique([
+            ...(source.accessibility_tags ?? []),
+            ...inferAccessTags(lowerText),
+          ]),
+          topic_tags: compactUnique([
+            ...(source.topic_tags ?? []),
+            ...inferTopicTags(lowerText),
+          ]),
+          experience_level_tags: compactUnique([
+            ...(source.experience_level_tags ?? []),
+            ...inferExperienceTags(lowerText),
+          ]),
+          image_url: null,
+          image_kind: "unknown",
+        },
+        pageText: combinedText,
+        parseNotes: ["Parsed from ICS calendar event."],
+        source,
+      });
+    });
 }
 
 async function scrapeMlhSeason(source) {
@@ -297,6 +457,176 @@ function parseDate(value) {
   if (Number.isNaN(parsed)) return null;
 
   return new Date(parsed).toISOString();
+}
+
+function normalizeCuratedOpportunity(record, source) {
+  return {
+    id: record.id ?? slugify(`${record.source ?? source.source}-${record.url}`),
+    title: record.title,
+    organization: record.organization,
+    description: record.description,
+    url: record.url,
+    source: record.source ?? source.source,
+    category: record.category,
+    location_text: record.location_text ?? null,
+    latitude: record.latitude ?? null,
+    longitude: record.longitude ?? null,
+    is_remote: Boolean(record.is_remote),
+    deadline: record.deadline ?? null,
+    cost: record.cost ?? null,
+    eligibility_tags: record.eligibility_tags ?? [],
+    accessibility_tags: record.accessibility_tags ?? [],
+    topic_tags: record.topic_tags ?? [],
+    experience_level_tags: record.experience_level_tags ?? [],
+    image_url: record.image_url ?? null,
+    image_kind: record.image_kind ?? "unknown",
+  };
+}
+
+function firstText($element, selector) {
+  return normalizeWhitespace($element.find(selector).first().text());
+}
+
+function looksLikeOpportunity(text, source) {
+  if (source.includeAll) return true;
+
+  return /\b(hackathon|scholarship|grant|fellowship|internship|apprenticeship|mentor|workshop|webinar|bootcamp|coding|software|engineering|computer science|data science|cybersecurity|ai|women in tech|career|community)\b/i.test(
+    text,
+  );
+}
+
+function inferCategory(text) {
+  if (text.includes("scholarship") || text.includes("grant")) return "scholarship";
+  if (text.includes("mentor")) return "mentorship";
+  if (text.includes("fellowship") || text.includes("intern") || text.includes("apprentice")) {
+    return "internship";
+  }
+  if (text.includes("workshop") || text.includes("webinar") || text.includes("course")) {
+    return "workshop";
+  }
+  if (text.includes("community") || text.includes("conference") || text.includes("meetup")) {
+    return "community";
+  }
+  return "hackathon";
+}
+
+function inferLocation(text) {
+  if (/\b(remote|online|virtual)\b/i.test(text)) return "Remote";
+  return null;
+}
+
+function inferEligibilityTags(text) {
+  return [
+    text.includes("women") || text.includes("nonbinary") ? "women-focused" : null,
+    text.includes("black") ? "black-technologists" : null,
+    text.includes("latine") || text.includes("latinx") ? "latine-technologists" : null,
+    text.includes("indigenous") ? "indigenous-technologists" : null,
+    text.includes("first-gen") || text.includes("first generation") ? "first-gen-friendly" : null,
+    text.includes("low-income") ? "low-income-friendly" : null,
+    text.includes("lgbtq") ? "lgbtq-friendly" : null,
+    text.includes("disabled") || text.includes("disability") ? "disability-friendly" : null,
+    text.includes("student") ? "students" : null,
+    text.includes("high school") ? "high-school" : null,
+    text.includes("career switch") ? "career-switcher" : null,
+  ].filter(Boolean);
+}
+
+function inferAccessTags(text) {
+  return [
+    text.includes("free") ? "free" : null,
+    /\b(remote|online|virtual)\b/i.test(text) ? "remote" : null,
+    text.includes("travel") ? "travel-support" : null,
+    text.includes("childcare") ? "childcare-support" : null,
+    text.includes("mentor") ? "mentorship-included" : null,
+    text.includes("no experience") ? "no-experience-required" : null,
+    text.includes("evening") || text.includes("weekend") ? "evening-weekend" : null,
+    text.includes("fee waived") || text.includes("no fee") ? "fee-waived" : null,
+  ].filter(Boolean);
+}
+
+function inferTopicTags(text) {
+  return [
+    text.includes("ai") || text.includes("machine learning") ? "ai" : null,
+    text.includes("design") ? "design" : null,
+    text.includes("security") || text.includes("cyber") ? "cybersecurity" : null,
+    text.includes("data") ? "data" : null,
+    text.includes("health") ? "health-tech" : null,
+    text.includes("startup") ? "startup" : null,
+    text.includes("hardware") ? "hardware" : null,
+    text.includes("social good") ? "social-good" : null,
+    text.includes("resume") || text.includes("interview") ? "career-prep" : null,
+    "community",
+  ].filter(Boolean);
+}
+
+function inferExperienceTags(text) {
+  return [
+    text.includes("beginner") || text.includes("no experience") ? "beginner-friendly" : null,
+    text.includes("early career") || text.includes("early-career") ? "early-career" : null,
+    text.includes("internship") ? "internship-ready" : null,
+  ].filter(Boolean);
+}
+
+function compactUnique(values) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function parseIcsEvents(text) {
+  const unfolded = text.replace(/\r?\n[ \t]/g, "");
+  const blocks = unfolded.match(/BEGIN:VEVENT[\s\S]*?END:VEVENT/g) ?? [];
+
+  return blocks.map((block) => ({
+    uid: getIcsValue(block, "UID"),
+    summary: getIcsValue(block, "SUMMARY"),
+    description: getIcsValue(block, "DESCRIPTION"),
+    location: getIcsValue(block, "LOCATION"),
+    url: getIcsValue(block, "URL"),
+    start: parseIcsDate(getIcsValue(block, "DTSTART")),
+    end: parseIcsDate(getIcsValue(block, "DTEND")),
+  }));
+}
+
+function getIcsValue(block, key) {
+  const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = block.match(new RegExp(`^${escapedKey}(?:;[^:]*)?:(.*)$`, "im"));
+
+  return normalizeWhitespace(unescapeIcsValue(match?.[1] ?? ""));
+}
+
+function unescapeIcsValue(value) {
+  return value
+    .replace(/\\n/gi, " ")
+    .replace(/\\,/g, ",")
+    .replace(/\\;/g, ";")
+    .replace(/\\\\/g, "\\");
+}
+
+function parseIcsDate(value) {
+  if (!value) return null;
+
+  const match = value.match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})Z?)?$/);
+  if (!match) return parseDate(value);
+
+  const [, year, month, day, hour = "00", minute = "00", second = "00"] = match;
+  return new Date(
+    Date.UTC(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      Number(second),
+    ),
+  ).toISOString();
+}
+
+function isPastDate(value) {
+  if (!value) return false;
+
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) return false;
+
+  return parsed < Date.now() - 24 * 60 * 60 * 1000;
 }
 
 async function evaluateSubmittedUrl(source) {

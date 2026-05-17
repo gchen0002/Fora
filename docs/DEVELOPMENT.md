@@ -71,8 +71,12 @@ npm run ingest:scrape
 The source registry lives in `data/ingest-sources.json`. Supported source
 types are:
 
+- `curated-json` for reviewed free/access-focused opportunities kept in JSON.
+- `rss-feed` for RSS or Atom feeds from trusted program/news pages.
+- `ics-calendar` for public iCal/ICS calendars such as Luma-style event feeds.
 - `mlh-season` for MLH hackathon seasons.
 - `generic-page` for trusted one-off pages.
+- `devpost-page` for known Devpost hackathon pages.
 - `submitted-url` for one user-submitted link.
 - `submitted-links` for a small batch of user-submitted links.
 
@@ -97,3 +101,12 @@ npm run ingest:push
 
 The generated `data/opportunities.scraped.json` file is intentionally ignored.
 Use it as a local review checkpoint before pushing data into D1.
+
+## Follow-up Work
+
+- The landing page right-side phone component is still a draft and needs more
+  visual/animation work before it should be treated as final.
+- The scraper still needs ongoing work: more free structured sources, more
+  Luma/ICS calendars, better source review tooling, and continued tuning so
+  scholarships, mentorship, internships, workshops, and communities stay
+  balanced instead of being dominated by hackathons.

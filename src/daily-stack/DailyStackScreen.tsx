@@ -9,6 +9,33 @@ import { getMatchExplanationLabels } from "@/domain/match-explanations";
 import { dailyStackPreview } from "@/domain/opportunities";
 import { cn } from "@/lib/utils";
 
+/* ── Spectrum animation keyframes ── */
+const SPECTRUM_STYLE_ID = "fora-spectrum-styles-feed";
+if (typeof document !== "undefined" && !document.getElementById(SPECTRUM_STYLE_ID)) {
+  const style = document.createElement("style");
+  style.id = SPECTRUM_STYLE_ID;
+  style.textContent = `
+    @keyframes spectrumShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .fora-spectrum-text {
+      background: linear-gradient(
+        90deg,
+        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB,
+        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB
+      );
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: spectrumShift 4s ease infinite;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 type DisplayOpportunity = ApiStackOpportunity & {
   imageClassName?: string;
   timing: string;
@@ -59,8 +86,14 @@ export function DailyStackScreen() {
     <main className="min-h-screen bg-[#f4f8ff] px-3 py-3 text-ink sm:px-4 sm:py-4">
       <section className="mx-auto max-w-[1120px] overflow-hidden rounded-[1.35rem] border border-ink/10 bg-white shadow-[0_22px_80px_rgba(61,85,128,0.14)]">
         <header className="flex items-center justify-between border-b border-ink/8 px-5 py-5 sm:px-8 lg:px-10">
-          <a className="text-2xl font-black tracking-normal text-blueberry" href="/">
-            Fora
+          <a className="flex items-center gap-2" href="/">
+            <div className="flex items-center gap-[3px]">
+              <div className="h-[10px] w-[10px] rounded-full bg-[#CDB4DB]" />
+              <div className="h-[10px] w-[10px] rounded-full bg-[#FFB5A7]" />
+              <div className="h-[10px] w-[10px] rounded-full bg-[#F4F1DE]" />
+              <div className="h-[10px] w-[10px] rounded-full bg-[#B2C9AB]" />
+            </div>
+            <span className="fora-spectrum-text text-2xl font-black tracking-normal">Fora</span>
           </a>
           <div className="flex items-center gap-3">
             <Button variant="secondary" className="hidden h-11 px-5 sm:inline-flex">

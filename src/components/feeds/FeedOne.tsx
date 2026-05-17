@@ -17,6 +17,33 @@ import type { ApiStackOpportunity } from "@/api/daily-stack";
 import { fetchDailyStack, fetchExploreMore } from "@/api/daily-stack";
 import { cn } from "@/lib/utils";
 
+/* ── Spectrum animation keyframes ── */
+const SPECTRUM_STYLE_ID = "fora-spectrum-styles-feed";
+if (typeof document !== "undefined" && !document.getElementById(SPECTRUM_STYLE_ID)) {
+  const style = document.createElement("style");
+  style.id = SPECTRUM_STYLE_ID;
+  style.textContent = `
+    @keyframes spectrumShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .fora-spectrum-text {
+      background: linear-gradient(
+        90deg,
+        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB,
+        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB
+      );
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: spectrumShift 4s ease infinite;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 type FeedItem = ReturnType<typeof toFeedItem>;
 
 const categoryStyles: Record<
@@ -460,11 +487,11 @@ function FeedShell({
           onClick={() => navigateHome()}
           type="button"
         >
-          <div className="h-2 w-2 rounded-full bg-[#4285F4]" />
-          <div className="h-2 w-2 rounded-full bg-[#EA4335]" />
-          <div className="h-2 w-2 rounded-full bg-[#FBBC05]" />
-          <div className="h-2 w-2 rounded-full bg-[#34A853]" />
-          <span className="ml-1.5 text-sm font-semibold text-white">fora</span>
+          <div className="h-2 w-2 rounded-full bg-[#CDB4DB]" />
+          <div className="h-2 w-2 rounded-full bg-[#FFB5A7]" />
+          <div className="h-2 w-2 rounded-full bg-[#F4F1DE]" />
+          <div className="h-2 w-2 rounded-full bg-[#B2C9AB]" />
+          <span className="fora-spectrum-text ml-1.5 text-sm font-semibold">fora</span>
         </button>
         <div className="flex items-center gap-3">
           <span className="hidden text-xs font-semibold text-white/70 sm:inline">
