@@ -28,6 +28,12 @@ For the MVP, User-Submitted Sources can be automatically rejected or quarantined
 
 A limited set of high-fit opportunities shown as a short daily ritual. The Daily Stack is not an infinite feed or generic directory.
 
+Daily Stack should feel curated rather than merely sorted. It should mostly prioritize the learner's selected goals while preserving a small number of Serendipity Slots, and it should balance across selected opportunity types when enough high-fit options are available.
+
+## Serendipity Slot
+
+A small part of the Daily Stack reserved for relevant opportunities outside the learner's explicitly selected goals. Serendipity Slots should still be access-aware and actionable; they are not random filler.
+
 ## Productive Scroll
 
 A mobile-first browsing mode where the user can continue swiping through relevant opportunities after the Daily Stack. Productive Scroll can feel like a social short-form feed, but every card should be actionable, access-aware, and tied to a real opportunity rather than passive entertainment.
@@ -54,13 +60,27 @@ The classification of an opportunity image, such as logo, poster, banner, photo,
 
 A private learner preference describing what the learner is looking for, such as hackathons, scholarships, internships, mentorship, coding workshops, tech communities, or resume/interview prep.
 
+## Profile Onboarding
+
+A mandatory first-run setup step for signed-in learners who do not yet have a private matching profile. Profile Onboarding should collect enough optional preferences to make the first Daily Stack feel personalized, without forcing identity or access-need disclosures.
+
 ## Access Need
 
 A private learner need or constraint that affects whether an opportunity is realistically accessible, such as free, remote, beginner-friendly, mentorship included, no experience required, travel support, childcare support, evening/weekend friendly, or application fee waived.
 
+Access Needs can have different strengths. Cost sensitivity should strongly affect Daily Stack ranking when an opportunity is clearly paid. Remote preference should strongly favor remote opportunities while still allowing nearby in-person opportunities. Supports such as travel support, childcare support, fee waived, mentorship included, and no experience required should usually boost rather than filter because source data may be incomplete.
+
+## Primary Location
+
+The private home-base location a learner gives Fora for distance estimates and nearby matching. Primary Location should be used to show approximate miles away and prioritize reachable in-person opportunities, not to publicly label the learner.
+
 ## Match Explanation
 
 The transparent user-facing reasons an opportunity appears in the Daily Stack. Match explanations should be generated from structured reason keys, not freeform text.
+
+## Identity Fit
+
+A private matching signal based on optional community or identity preferences the learner chooses during Profile Onboarding. Identity Fit should boost and explain relevant opportunities, not act as a hard filter that hides otherwise useful general opportunities.
 
 ## Explore More
 

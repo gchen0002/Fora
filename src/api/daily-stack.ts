@@ -7,6 +7,9 @@ export interface ApiStackOpportunity {
   source: string;
   category: string;
   locationText: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  distanceMiles: number | null;
   isRemote: boolean;
   deadline: string | null;
   cost: string | null;
@@ -22,6 +25,11 @@ export interface ApiStackOpportunity {
 
 export interface DailyStackResponse {
   stack: ApiStackOpportunity[];
+  profileComplete: boolean;
+}
+
+export interface ExploreMoreResponse {
+  opportunities: ApiStackOpportunity[];
   profileComplete: boolean;
 }
 
@@ -45,4 +53,24 @@ export async function fetchDailyStack(token: string) {
   }
 
   return response.json() as Promise<DailyStackResponse>;
+}
+
+export async function fetchExploreMore(token: string) {
+  const response = await fetch(`${apiBaseUrl}/api/explore-more`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+
+    throw new Error(
+      `Explore More request failed: ${response.status}${
+        detail ? ` ${detail}` : ""
+      }`,
+    );
+  }
+
+  return response.json() as Promise<ExploreMoreResponse>;
 }

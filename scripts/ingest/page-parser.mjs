@@ -10,18 +10,17 @@ export async function parseGenericPageOpportunity(source) {
   const html = await fetchHtml(source.url);
   const $ = cheerio.load(html);
   const title =
+    source.name ??
     $("meta[property='og:title']").attr("content") ??
     $("title").first().text() ??
     source.name;
   const description =
+    source.description ??
     $("meta[property='og:description']").attr("content") ??
     $("meta[name='description']").attr("content") ??
     $("p").first().text() ??
     `Opportunity scraped from ${source.name}.`;
-  const imageUrl = absolutizeUrl(
-    $("meta[property='og:image']").attr("content") ?? null,
-    source.url,
-  );
+  const imageUrl = getGenericImageUrl($, source);
   const pageText = normalizeWhitespace($("body").text());
   const lowerPageText = pageText.toLowerCase();
 
@@ -35,13 +34,29 @@ export async function parseGenericPageOpportunity(source) {
       source: source.source,
       category: source.category ?? inferCategory(lowerPageText),
       location_text: source.location_text ?? inferLocation(lowerPageText),
-      is_remote: lowerPageText.includes("remote") || lowerPageText.includes("online"),
+      latitude: source.latitude ?? null,
+      longitude: source.longitude ?? null,
+      is_remote:
+        source.is_remote ??
+        (lowerPageText.includes("remote") || lowerPageText.includes("online")),
       deadline: source.deadline ?? inferDateLikeValue(lowerPageText),
       cost: lowerPageText.includes("free") ? "Free" : null,
-      eligibility_tags: inferEligibilityTags(lowerPageText),
-      accessibility_tags: inferAccessTags(lowerPageText),
-      topic_tags: inferTopicTags(lowerPageText),
-      experience_level_tags: inferExperienceTags(lowerPageText),
+      eligibility_tags: compactUnique([
+        ...(source.eligibility_tags ?? []),
+        ...inferEligibilityTags(lowerPageText),
+      ]),
+      accessibility_tags: compactUnique([
+        ...(source.accessibility_tags ?? []),
+        ...inferAccessTags(lowerPageText),
+      ]),
+      topic_tags: compactUnique([
+        ...(source.topic_tags ?? []),
+        ...inferTopicTags(lowerPageText),
+      ]),
+      experience_level_tags: compactUnique([
+        ...(source.experience_level_tags ?? []),
+        ...inferExperienceTags(lowerPageText),
+      ]),
       image_url: imageUrl,
       image_kind: source.image_kind ?? (imageUrl ? "unknown" : "unknown"),
     },
@@ -130,4 +145,47 @@ function absolutizeUrl(value, baseUrl) {
   } catch {
     return value;
   }
+}
+
+function compactUnique(values) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function getGenericImageUrl($, source) {
+  if (source.image_url) return absolutizeUrl(source.image_url, source.url);
+
+  const metaImage = absolutizeUrl(
+    $("meta[property='og:image']").attr("content") ??
+      $("meta[name='twitter:image']").attr("content") ??
+      null,
+    source.url,
+  );
+
+  if (isUsableImageUrl(metaImage)) return metaImage;
+
+  const images = [];
+
+  $("img").each((index, element) => {
+    const src =
+      $(element).attr("src") ??
+      $(element).attr("data-src") ??
+      $(element).attr("data-lazy-src") ??
+      null;
+    const alt = normalizeWhitespace($(element).attr("alt") ?? "");
+    const imageUrl = absolutizeUrl(src, source.url);
+
+    if (!isUsableImageUrl(imageUrl)) return;
+    if (index === 0 && source.image_kind === "photo") return;
+
+    const descriptor = `${alt} ${imageUrl}`.toLowerCase();
+    if (descriptor.includes("logo") || descriptor.endsWith(".svg")) return;
+
+    images.push(imageUrl);
+  });
+
+  return images[0] ?? null;
+}
+
+function isUsableImageUrl(value) {
+  return Boolean(value && !/\$\{|placeholder|no-avatar/i.test(value));
 }

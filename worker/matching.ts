@@ -24,6 +24,9 @@ export function scoreDailyStack(
   const goalTags = parseJsonList(profile?.goal_tags);
   const remotePreference = profile?.remote_preference;
   const costSensitive = Boolean(profile?.cost_sensitivity);
+  const profileLatitude = profile?.latitude;
+  const profileLongitude = profile?.longitude;
+  const mileageRange = profile?.mileage_range ?? null;
 
   return opportunities
     .map((opportunity) => {
@@ -85,13 +88,67 @@ export function scoreDailyStack(
         score += deadlineBoost(opportunity.deadline);
       }
 
+      const distanceMiles = getDistanceMiles(
+        profileLatitude,
+        profileLongitude,
+        opportunity.latitude,
+        opportunity.longitude,
+      );
+
+      if (distanceMiles !== null && mileageRange !== null) {
+        if (distanceMiles <= mileageRange) {
+          score += 3;
+          reasons.add("nearby");
+        } else if (!opportunity.isRemote) {
+          score -= 2;
+        }
+      }
+
       return {
         ...opportunity,
+        distanceMiles,
         fitScore: Math.min(score, 99),
         matchReasons: [...reasons].map((reason) => WHY_LABELS[reason] ?? reason),
       };
     })
     .sort((a, b) => b.fitScore - a.fitScore);
+}
+
+function getDistanceMiles(
+  fromLatitude: number | null | undefined,
+  fromLongitude: number | null | undefined,
+  toLatitude: number | null | undefined,
+  toLongitude: number | null | undefined,
+) {
+  if (
+    fromLatitude === null ||
+    fromLatitude === undefined ||
+    fromLongitude === null ||
+    fromLongitude === undefined ||
+    toLatitude === null ||
+    toLatitude === undefined ||
+    toLongitude === null ||
+    toLongitude === undefined
+  ) {
+    return null;
+  }
+
+  const earthRadiusMiles = 3958.8;
+  const deltaLatitude = toRadians(toLatitude - fromLatitude);
+  const deltaLongitude = toRadians(toLongitude - fromLongitude);
+  const lat1 = toRadians(fromLatitude);
+  const lat2 = toRadians(toLatitude);
+  const haversine =
+    Math.sin(deltaLatitude / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLongitude / 2) ** 2;
+
+  return Math.round(
+    earthRadiusMiles * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine)),
+  );
+}
+
+function toRadians(value: number) {
+  return (value * Math.PI) / 180;
 }
 
 function deadlineBoost(deadline: string): number {

@@ -75,6 +75,7 @@ export interface Opportunity {
 export interface StackOpportunity extends Opportunity {
   fitScore: number;
   matchReasons: string[];
+  distanceMiles: number | null;
 }
 
 export interface IngestOpportunity {

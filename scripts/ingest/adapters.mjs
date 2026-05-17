@@ -17,6 +17,10 @@ export async function runSourceAdapter(source) {
     return evaluateParsedOpportunity(source, await parseGenericPageOpportunity(source));
   }
 
+  if (source.type === "devpost-page") {
+    return evaluateParsedOpportunity(source, await parseDevpostPage(source));
+  }
+
   if (source.type === "submitted-url") {
     return evaluateSubmittedUrl(source);
   }
@@ -118,6 +122,54 @@ async function scrapeMlhSeason(source) {
   return parsed.map((item) => createEvaluation({ ...item, source }));
 }
 
+async function parseDevpostPage(source) {
+  const html = await fetchHtml(source.url);
+  const $ = cheerio.load(html);
+  const pageText = normalizeWhitespace($("body").text());
+  const title = source.name || firstNonEmptyText($, "h1");
+  const subtitle = firstNonEmptyText($, "h3");
+  const image = getDevpostImage($, source.url);
+  const meta = parseDevpostMeta(pageText);
+  const tags = parseDevpostTags(pageText);
+
+  return {
+    opportunity: {
+      id: slugify(`${source.source}-${source.url}`),
+      title,
+      organization: meta.organization || source.organization || "Devpost",
+      description: `Devpost-listed hackathon for students, builders, and early-career technologists. ${subtitle || meta.description || title}`,
+      url: source.url,
+      source: source.source,
+      category: source.category ?? "hackathon",
+      location_text: source.location_text ?? meta.location,
+      latitude: source.latitude ?? null,
+      longitude: source.longitude ?? null,
+      is_remote: source.is_remote ?? isRemoteDevpostHackathon(meta, pageText),
+      deadline: source.deadline ?? meta.deadline,
+      cost: "Free or low-cost",
+      eligibility_tags: tags.eligibility,
+      accessibility_tags: tags.accessibility,
+      topic_tags: tags.topics,
+      experience_level_tags: tags.experience,
+      image_url: image.url,
+      image_kind: image.kind,
+    },
+    pageText,
+    parseNotes: ["Parsed from Devpost hackathon page."],
+  };
+}
+
+function firstNonEmptyText($, selector) {
+  const values = [];
+
+  $(selector).each((_, element) => {
+    const value = normalizeWhitespace($(element).text());
+    if (value) values.push(value);
+  });
+
+  return values[0] ?? "";
+}
+
 function getMlhImage(event) {
   if (event.backgroundUrl) {
     return {
@@ -137,6 +189,114 @@ function getMlhImage(event) {
     url: null,
     kind: "unknown",
   };
+}
+
+function getDevpostImage($, baseUrl) {
+  const imageUrl =
+    $("meta[property='og:image']").attr("content") ??
+    $("meta[name='twitter:image']").attr("content") ??
+    $("img").first().attr("src") ??
+    null;
+
+  if (!imageUrl) {
+    return {
+      url: null,
+      kind: "unknown",
+    };
+  }
+
+  return {
+    url: new URL(imageUrl, baseUrl).toString(),
+    kind: "banner",
+  };
+}
+
+function parseDevpostMeta(text) {
+  const deadlineMatch = text.match(
+    /Deadline:\s*([A-Z][a-z]{2,8}\s+\d{1,2},\s+20\d{2}(?:\s+@\s+\d{1,2}:\d{2}(?:am|pm)?\s+[A-Z]{2,4})?)/,
+  );
+  const rangeMatch = text.match(
+    /\b([A-Z][a-z]{2,8}\s+\d{1,2}\s+[\u2013-]\s+\d{1,2},\s+20\d{2})\b/,
+  );
+  const dateMatch = text.match(/\b([A-Z][a-z]{2,8}\s+\d{1,2},\s+20\d{2})\b/);
+  const locationMatch = text.match(
+    /(?:Outlook|Google|Apple)\s+([^|]{3,80})\s+\|\s+Public/,
+  );
+  const labeledLocationMatch = text.match(
+    /\bLocation\s+([^<]{3,140}?)(?:Prize Categories|Prizes|Rules|Requirements|Judging|$)/i,
+  );
+  const organizationMatch = text.match(/\|\s+\d[\d,]* participants\s+([^#]{2,80})/);
+
+  return {
+    deadline: parseDate(deadlineMatch?.[1] ?? rangeMatch?.[1] ?? dateMatch?.[1]),
+    location: normalizeWhitespace(
+      locationMatch?.[1] ?? cleanDevpostLocation(labeledLocationMatch?.[1] ?? ""),
+    ),
+    organization: normalizeWhitespace(organizationMatch?.[1] ?? ""),
+    description: normalizeWhitespace(
+      text.match(/About (?:the Challenge|the challenge)\s+(.{80,420}?)(?:Requirements|What to Build|Hackathon Sponsors)/i)?.[1] ??
+        "",
+    ),
+  };
+}
+
+function cleanDevpostLocation(value) {
+  return value
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isRemoteDevpostHackathon(meta, text) {
+  const normalizedText = text.toLowerCase();
+  const normalizedLocation = meta.location.toLowerCase();
+
+  return (
+    normalizedLocation.includes("online") ||
+    normalizedLocation.includes("remote") ||
+    /\b(online event|virtual event|fully remote|participate online)\b/.test(normalizedText)
+  );
+}
+
+function parseDevpostTags(text) {
+  const lowerText = text.toLowerCase();
+  const topics = [
+    lowerText.includes("machine learning") || lowerText.includes("ai") ? "ai" : null,
+    lowerText.includes("social good") ? "social-good" : null,
+    lowerText.includes("web") ? "web" : null,
+    lowerText.includes("design") ? "design" : null,
+    lowerText.includes("cybersecurity") ? "cybersecurity" : null,
+    "hackathon",
+    "community",
+  ].filter(Boolean);
+
+  return {
+    accessibility: [
+      lowerText.includes("online") ? "remote" : "in-person",
+      lowerText.includes("free") ? "free" : null,
+    ].filter(Boolean),
+    eligibility: [
+      lowerText.includes("student") ? "students" : null,
+      lowerText.includes("high school") || lowerText.includes("ages 13") ? "high-school" : null,
+    ].filter(Boolean),
+    experience: [
+      lowerText.includes("beginner") || lowerText.includes("no prior experience")
+        ? "beginner-friendly"
+        : null,
+    ].filter(Boolean),
+    topics: [...new Set(topics)],
+  };
+}
+
+function parseDate(value) {
+  if (!value) return null;
+
+  const cleaned = value.split("@")[0].replace(/\s+[\u2013-]\s+\d{1,2}/, "").trim();
+  const parsed = Date.parse(cleaned);
+
+  if (Number.isNaN(parsed)) return null;
+
+  return new Date(parsed).toISOString();
 }
 
 async function evaluateSubmittedUrl(source) {

@@ -14,7 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import type { ApiStackOpportunity } from "@/api/daily-stack";
-import { fetchDailyStack } from "@/api/daily-stack";
+import { fetchDailyStack, fetchExploreMore } from "@/api/daily-stack";
 import { cn } from "@/lib/utils";
 
 type FeedItem = ReturnType<typeof toFeedItem>;
@@ -92,6 +92,7 @@ export function FeedOne() {
   const navigate = useNavigate();
   const { getToken } = useAuth();
   const [opportunities, setOpportunities] = useState<ApiStackOpportunity[]>([]);
+  const [activeCategory, setActiveCategory] = useState("overall");
   const [saved, setSaved] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -109,10 +110,18 @@ export function FeedOne() {
           throw new Error("Sign in again to refresh your session.");
         }
 
-        const response = await fetchDailyStack(token);
+        const [dailyResponse, exploreResponse] = await Promise.all([
+          fetchDailyStack(token),
+          fetchExploreMore(token),
+        ]);
 
         if (!cancelled) {
-          setOpportunities(response.stack);
+          setOpportunities(
+            dedupeOpportunities([
+              ...dailyResponse.stack,
+              ...exploreResponse.opportunities,
+            ]),
+          );
           setError(null);
         }
       } catch (cause) {
@@ -141,6 +150,14 @@ export function FeedOne() {
   const feedItems = useMemo(
     () => opportunities.map((item, index) => toFeedItem(item, index)),
     [opportunities],
+  );
+  const categories = useMemo(() => getCategoryTabs(feedItems), [feedItems]);
+  const visibleItems = useMemo(
+    () =>
+      activeCategory === "overall"
+        ? feedItems
+        : feedItems.filter((item) => item.category === activeCategory),
+    [activeCategory, feedItems],
   );
 
   function toggleSave(id: string) {
@@ -171,7 +188,7 @@ export function FeedOne() {
     );
   }
 
-  if (feedItems.length === 0) {
+  if (visibleItems.length === 0) {
     return (
       <FeedShell navigateHome={() => navigate("/")}>
         <CenteredFeedState eyebrow="No opportunities yet" title="Run the scraper and push accepted records.">
@@ -186,18 +203,56 @@ export function FeedOne() {
   return (
     <FeedShell navigateHome={() => navigate("/")}>
       <div className="h-[100dvh] snap-y snap-mandatory overflow-y-auto bg-black scrollbar-hide md:bg-[#050608]">
-        {feedItems.map((event, index) => (
+        <CategoryTabs
+          activeCategory={activeCategory}
+          categories={categories}
+          onChange={setActiveCategory}
+        />
+        {visibleItems.map((event, index) => (
           <ProductiveScrollCard
             event={event}
             index={index}
             isSaved={saved.has(event.id)}
             key={event.id}
             onToggleSave={() => toggleSave(event.id)}
-            total={feedItems.length}
+            total={visibleItems.length}
           />
         ))}
       </div>
     </FeedShell>
+  );
+}
+
+function CategoryTabs({
+  activeCategory,
+  categories,
+  onChange,
+}: {
+  activeCategory: string;
+  categories: Array<{ id: string; label: string; count: number }>;
+  onChange: (category: string) => void;
+}) {
+  return (
+    <div className="fixed left-0 right-0 top-14 z-40 flex justify-center px-3">
+      <div className="flex max-w-full gap-2 overflow-x-auto rounded-full border border-white/12 bg-black/24 p-1 text-xs font-black text-white shadow-lg backdrop-blur-xl scrollbar-hide">
+        {categories.map((category) => (
+          <button
+            className={cn(
+              "shrink-0 rounded-full px-3 py-2 transition",
+              activeCategory === category.id
+                ? "bg-white text-[#10131f]"
+                : "text-white/75 hover:bg-white/12 hover:text-white",
+            )}
+            key={category.id}
+            onClick={() => onChange(category.id)}
+            type="button"
+          >
+            {category.label}
+            <span className="ml-1 opacity-60">{category.count}</span>
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -242,7 +297,7 @@ function ProductiveScrollCard({
               />
             </div>
           ) : null}
-          {/* ── Category badges ── */}
+          {/* Category badges */}
           <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
             <span
               className="rounded-full border px-3.5 py-1.5 text-[0.65rem] font-bold uppercase tracking-[0.22em] text-white"
@@ -262,7 +317,7 @@ function ProductiveScrollCard({
             </span>
           </div>
 
-          {/* ── Instant-read eyebrow ── */}
+          {/* Instant-read eyebrow */}
           <p
             className="mb-3 flex items-center justify-center gap-2 text-[0.68rem] uppercase tracking-[0.24em] text-white/55"
             style={{ fontFamily: "'DM Mono', monospace" }}
@@ -271,7 +326,7 @@ function ProductiveScrollCard({
             {event.instantRead}
           </p>
 
-          {/* ── Hero title ── */}
+          {/* Hero title */}
           <h1
             className="text-[3.2rem] font-bold leading-[0.92] tracking-[-0.02em] sm:text-[4.2rem] md:text-[4rem]"
             style={{
@@ -282,13 +337,13 @@ function ProductiveScrollCard({
             {event.title}
           </h1>
 
-          {/* ── Description ── */}
+          {/* Description */}
           <p className="mt-5 max-w-[32ch] text-[0.94rem] font-medium leading-relaxed text-white/72">
             {event.description}
           </p>
         </div>
 
-        {/* ── Bottom info card ── */}
+        {/* Bottom info card */}
         <div className="w-full overflow-hidden rounded-[1.4rem] border border-white/8 bg-white shadow-[0_22px_70px_rgba(0,0,0,0.4)]">
           {/* Accent strip */}
           <div className="h-1" style={{ background: event.style.accent }} />
@@ -468,7 +523,7 @@ function toFeedItem(opportunity: ApiStackOpportunity, index: number) {
     date: formatDate(opportunity.deadline),
     decisionHeadline: getDecisionHeadline(opportunity, style.label),
     instantRead: getInstantRead(opportunity, style.label),
-    location: opportunity.locationText ?? (opportunity.isRemote ? "Remote" : "Location TBD"),
+    location: getLocationLabel(opportunity),
     match: opportunity.fitScore,
     imageKind: opportunity.imageKind,
     imageUrl: opportunity.imageUrl,
@@ -480,6 +535,33 @@ function toFeedItem(opportunity: ApiStackOpportunity, index: number) {
     trustCue: getTrustCue(opportunity, index),
     url: opportunity.url,
   };
+}
+
+function getCategoryTabs(items: FeedItem[]) {
+  const counts = items.reduce(
+    (accumulator, item) => {
+      accumulator.set(item.category, (accumulator.get(item.category) ?? 0) + 1);
+      return accumulator;
+    },
+    new Map<string, number>(),
+  );
+
+  return [
+    {
+      id: "overall",
+      label: "Overall",
+      count: items.length,
+    },
+    ...[...counts.entries()].map(([id, count]) => ({
+      id,
+      label: categoryStyles[id]?.label ?? titleCase(id),
+      count,
+    })),
+  ];
+}
+
+function dedupeOpportunities(items: ApiStackOpportunity[]) {
+  return [...new Map(items.map((item) => [item.url, item])).values()];
 }
 
 function getDecisionHeadline(opportunity: ApiStackOpportunity, categoryLabel: string) {
@@ -504,7 +586,18 @@ function getDecisionHeadline(opportunity: ApiStackOpportunity, categoryLabel: st
 
 function getInstantRead(opportunity: ApiStackOpportunity, categoryLabel: string) {
   const strongestReason = opportunity.matchReasons[0] ?? "high-fit";
-  return `${categoryLabel} · ${strongestReason}`;
+  return `${categoryLabel} - ${strongestReason}`;
+}
+
+function getLocationLabel(opportunity: ApiStackOpportunity) {
+  if (opportunity.distanceMiles !== null) {
+    return `${opportunity.distanceMiles} mi away`;
+  }
+
+  if (opportunity.isRemote) return "Remote";
+  if (opportunity.locationText) return opportunity.locationText;
+
+  return "Location TBD";
 }
 
 function getTrustCue(opportunity: ApiStackOpportunity, index: number) {
@@ -524,4 +617,8 @@ function formatDate(value: string | null) {
 
 function compactUnique(values: string[]) {
   return [...new Set(values.filter(Boolean))];
+}
+
+function titleCase(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }
