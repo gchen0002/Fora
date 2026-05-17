@@ -1,3 +1,5 @@
+import { apiUrl } from "./url";
+
 export interface ApiStackOpportunity {
   id: string;
   title: string;
@@ -7,6 +9,9 @@ export interface ApiStackOpportunity {
   source: string;
   category: string;
   locationText: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  distanceMiles: number | null;
   isRemote: boolean;
   deadline: string | null;
   cost: string | null;
@@ -15,6 +20,7 @@ export interface ApiStackOpportunity {
   topicTags: string[];
   experienceLevelTags: string[];
   imageUrl: string | null;
+  imageKind: "logo" | "poster" | "banner" | "photo" | "unknown";
   fitScore: number;
   matchReasons: string[];
 }
@@ -24,10 +30,13 @@ export interface DailyStackResponse {
   profileComplete: boolean;
 }
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
+export interface ExploreMoreResponse {
+  opportunities: ApiStackOpportunity[];
+  profileComplete: boolean;
+}
 
 export async function fetchDailyStack(token: string) {
-  const response = await fetch(`${apiBaseUrl}/api/daily-stack`, {
+  const response = await fetch(apiUrl("/api/daily-stack"), {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -44,4 +53,24 @@ export async function fetchDailyStack(token: string) {
   }
 
   return response.json() as Promise<DailyStackResponse>;
+}
+
+export async function fetchExploreMore(token: string) {
+  const response = await fetch(apiUrl("/api/explore-more"), {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+
+    throw new Error(
+      `Explore More request failed: ${response.status}${
+        detail ? ` ${detail}` : ""
+      }`,
+    );
+  }
+
+  return response.json() as Promise<ExploreMoreResponse>;
 }

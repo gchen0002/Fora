@@ -15,6 +15,83 @@ export async function getProfile(env: Env, clerkUserId: string) {
     .first<Profile>();
 }
 
+export async function upsertProfile(
+  env: Env,
+  clerkUserId: string,
+  profile: {
+    display_name?: string | null;
+    location_text?: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    mileage_range?: number | null;
+    experience_level?: string | null;
+    remote_preference?: string | null;
+    cost_sensitivity?: boolean;
+    identity_tags?: string[];
+    access_need_tags?: string[];
+    interest_tags?: string[];
+    goal_tags?: string[];
+  },
+) {
+  const id = crypto.randomUUID();
+
+  await env.DB.prepare(
+    `
+      INSERT INTO profiles (
+        id,
+        clerk_user_id,
+        display_name,
+        location_text,
+        latitude,
+        longitude,
+        mileage_range,
+        experience_level,
+        remote_preference,
+        cost_sensitivity,
+        identity_tags,
+        access_need_tags,
+        interest_tags,
+        goal_tags,
+        updated_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      ON CONFLICT(clerk_user_id) DO UPDATE SET
+        display_name = excluded.display_name,
+        location_text = excluded.location_text,
+        latitude = excluded.latitude,
+        longitude = excluded.longitude,
+        mileage_range = excluded.mileage_range,
+        experience_level = excluded.experience_level,
+        remote_preference = excluded.remote_preference,
+        cost_sensitivity = excluded.cost_sensitivity,
+        identity_tags = excluded.identity_tags,
+        access_need_tags = excluded.access_need_tags,
+        interest_tags = excluded.interest_tags,
+        goal_tags = excluded.goal_tags,
+        updated_at = CURRENT_TIMESTAMP
+    `,
+  )
+    .bind(
+      id,
+      clerkUserId,
+      profile.display_name ?? null,
+      profile.location_text ?? null,
+      profile.latitude ?? null,
+      profile.longitude ?? null,
+      profile.mileage_range ?? null,
+      profile.experience_level ?? null,
+      profile.remote_preference ?? null,
+      profile.cost_sensitivity ? 1 : 0,
+      stringifyList(profile.identity_tags),
+      stringifyList(profile.access_need_tags),
+      stringifyList(profile.interest_tags),
+      stringifyList(profile.goal_tags),
+    )
+    .run();
+
+  return getProfile(env, clerkUserId);
+}
+
 export async function getCandidateOpportunities(env: Env, clerkUserId: string) {
   const result = await env.DB.prepare(
     `
@@ -82,6 +159,35 @@ export async function recordUserAction(
   return id;
 }
 
+export async function deleteStaleSourceOpportunities(
+  env: Env,
+  sources: string[],
+  activeUrls: string[],
+) {
+  const uniqueSources = [...new Set(sources.filter(Boolean))];
+  const uniqueUrls = [...new Set(activeUrls.filter(Boolean))];
+
+  if (uniqueSources.length === 0 || uniqueUrls.length === 0) return 0;
+
+  const sourcePlaceholders = uniqueSources.map(() => "?").join(", ");
+  const urlPlaceholders = uniqueUrls.map(() => "?").join(", ");
+  const result = await env.DB.prepare(
+    `
+      DELETE FROM opportunities
+      WHERE source IN (${sourcePlaceholders})
+        AND url NOT IN (${urlPlaceholders})
+        AND id NOT IN (
+          SELECT opportunity_id
+          FROM user_opportunity_actions
+        )
+    `,
+  )
+    .bind(...uniqueSources, ...uniqueUrls)
+    .run();
+
+  return result.meta.changes ?? 0;
+}
+
 export async function upsertOpportunity(env: Env, opportunity: IngestOpportunity) {
   const id = opportunity.id ?? slugify(`${opportunity.source}-${opportunity.url}`);
 
@@ -106,9 +212,10 @@ export async function upsertOpportunity(env: Env, opportunity: IngestOpportunity
         topic_tags,
         experience_level_tags,
         image_url,
+        image_kind,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
       ON CONFLICT(url) DO UPDATE SET
         title = excluded.title,
         organization = excluded.organization,
@@ -126,6 +233,7 @@ export async function upsertOpportunity(env: Env, opportunity: IngestOpportunity
         topic_tags = excluded.topic_tags,
         experience_level_tags = excluded.experience_level_tags,
         image_url = excluded.image_url,
+        image_kind = excluded.image_kind,
         updated_at = CURRENT_TIMESTAMP
     `,
   )
@@ -148,6 +256,7 @@ export async function upsertOpportunity(env: Env, opportunity: IngestOpportunity
       stringifyList(opportunity.topic_tags),
       stringifyList(opportunity.experience_level_tags),
       opportunity.image_url ?? null,
+      opportunity.image_kind ?? "unknown",
     )
     .run();
 

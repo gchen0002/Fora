@@ -16,8 +16,11 @@ const trustedDomainHints = [
   "swe.org",
   "nsbe.org",
   "shpe.org",
+  "anitab.org",
   "codepath.org",
   "girlswhocode.com",
+  "mlt.org",
+  "rewritingthecode.org",
   "recurse.com",
 ];
 
@@ -156,8 +159,11 @@ export function slugify(value) {
 export async function fetchHtml(url) {
   const response = await fetch(url, {
     headers: {
+      accept:
+        "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+      "accept-language": "en-US,en;q=0.9",
       "user-agent":
-        "Fora opportunity ingestion prototype (contact: local demo)",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125 Safari/537.36 ForaOpportunityBot/0.1",
     },
   });
 
@@ -230,7 +236,10 @@ function detectRiskFlags({
     flags.push("missing-organizer");
   }
   if (looksExpired(opportunity.deadline)) flags.push("expired");
-  if (/pay\s*\$?\d+|application fee|registration fee/i.test(normalizedText)) {
+  if (
+    /pay\s*\$?\d+|application fee|registration fee/i.test(normalizedText) &&
+    !mentionsCoveredFunding(normalizedText)
+  ) {
     flags.push("possible-pay-to-play");
   }
 
@@ -290,6 +299,12 @@ function looksExpired(deadline) {
 
   const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
   return parsed < thirtyDaysAgo;
+}
+
+function mentionsCoveredFunding(text) {
+  return /\b(scholarship|scholars|funded|covered|provided|travel support|lodging|transportation|grant)\b/i.test(
+    text,
+  );
 }
 
 function clamp(value, min, max) {

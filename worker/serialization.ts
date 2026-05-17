@@ -37,6 +37,7 @@ export function toOpportunity(row: OpportunityRow): Opportunity {
     topicTags: parseJsonList(row.topic_tags),
     experienceLevelTags: parseJsonList(row.experience_level_tags),
     imageUrl: row.image_url,
+    imageKind: row.image_kind ?? "unknown",
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

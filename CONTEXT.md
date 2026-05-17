@@ -28,17 +28,59 @@ For the MVP, User-Submitted Sources can be automatically rejected or quarantined
 
 A limited set of high-fit opportunities shown as a short daily ritual. The Daily Stack is not an infinite feed or generic directory.
 
+Daily Stack should feel curated rather than merely sorted. It should mostly prioritize the learner's selected goals while preserving a small number of Serendipity Slots, and it should balance across selected opportunity types when enough high-fit options are available.
+
+## Serendipity Slot
+
+A small part of the Daily Stack reserved for relevant opportunities outside the learner's explicitly selected goals. Serendipity Slots should still be access-aware and actionable; they are not random filler.
+
+## Productive Scroll
+
+A mobile-first browsing mode where the user can continue swiping through relevant opportunities after the Daily Stack. Productive Scroll can feel like a social short-form feed, but every card should be actionable, access-aware, and tied to a real opportunity rather than passive entertainment.
+
+Productive Scroll cards should optimize for instant vibe recognition first, then application decision-making. The first glance should make the opportunity type, audience fit, and reason to care obvious; the lower action area should expose date, location, access tags, and the apply/save/share path.
+
+Productive Scroll should use a consistent card shell with type-adaptive emphasis. Hackathons should foreground date, format, beginner fit, and build theme; scholarships should foreground funding, deadline, eligibility, and application effort; mentorship should foreground format, cadence, audience, and time commitment; internships should foreground role, location, experience level, and compensation when known.
+
+On mobile, each Productive Scroll card should behave like a full-screen card with a bottom action sheet: an immersive visual/type area for quick recognition and a stable lower panel for title, match reasons, date, location, access tags, and primary actions.
+
+Productive Scroll should treat apply and save activity as useful popularity signals. Likes and comments are not part of the MVP feed; they can make the experience feel social-first instead of opportunity-first.
+
+Popularity should be shown as a soft trust cue only when it helps the learner decide, such as "saved by similar learners" or "popular with beginners." Raw counters should not dominate the card or override match fit.
+
+Productive Scroll should prefer an opportunity's own image as the primary card visual, such as an event poster, program banner, official logo, or website preview image. If no trustworthy opportunity image is available, the card should use a neutral blank or brand-system background rather than guessing with unrelated venue, university, or city imagery.
+
+Small logos should be placed cleanly inside the Productive Scroll visual area rather than stretched into full-bleed backgrounds. Full-bleed imagery should be reserved for trustworthy posters, banners, or photos that can carry a card without becoming blurry or misleading.
+
+## Image Kind
+
+The classification of an opportunity image, such as logo, poster, banner, photo, or unknown. Image Kind helps Productive Scroll decide whether to render an image as a contained mark, a full-bleed visual, or a neutral fallback.
+
 ## Opportunity Preference
 
 A private learner preference describing what the learner is looking for, such as hackathons, scholarships, internships, mentorship, coding workshops, tech communities, or resume/interview prep.
+
+## Profile Onboarding
+
+A mandatory first-run setup step for signed-in learners who do not yet have a private matching profile. Profile Onboarding should collect enough optional preferences to make the first Daily Stack feel personalized, without forcing identity or access-need disclosures.
 
 ## Access Need
 
 A private learner need or constraint that affects whether an opportunity is realistically accessible, such as free, remote, beginner-friendly, mentorship included, no experience required, travel support, childcare support, evening/weekend friendly, or application fee waived.
 
+Access Needs can have different strengths. Cost sensitivity should strongly affect Daily Stack ranking when an opportunity is clearly paid. Remote preference should strongly favor remote opportunities while still allowing nearby in-person opportunities. Supports such as travel support, childcare support, fee waived, mentorship included, and no experience required should usually boost rather than filter because source data may be incomplete.
+
+## Primary Location
+
+The private home-base location a learner gives Fora for distance estimates and nearby matching. Primary Location should be used to show approximate miles away and prioritize reachable in-person opportunities, not to publicly label the learner.
+
 ## Match Explanation
 
 The transparent user-facing reasons an opportunity appears in the Daily Stack. Match explanations should be generated from structured reason keys, not freeform text.
+
+## Identity Fit
+
+A private matching signal based on optional community or identity preferences the learner chooses during Profile Onboarding. Identity Fit should boost and explain relevant opportunities, not act as a hard filter that hides otherwise useful general opportunities.
 
 ## Explore More
 

@@ -6,7 +6,8 @@
  * Apple/Mac-style frosted Sign In button.
  */
 import { motion } from "framer-motion";
-import { ArrowRight, Megaphone, Sparkles, Heart } from "lucide-react";
+import { SignInButton, useAuth, UserButton } from "@clerk/react";
+import { Sparkles, Heart } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -118,6 +119,7 @@ export function VariationOne() {
 
 function Nav() {
   const navigate = useNavigate();
+  const { isLoaded, isSignedIn } = useAuth();
   return (
     <motion.header
       initial={{ opacity: 0, y: -20 }}
@@ -143,13 +145,38 @@ function Nav() {
         <a href="#" className="hidden transition-colors hover:text-[#202124] sm:block">
           Discover Events
         </a>
-        <button
-          onClick={() => navigate('/feed')}
-          className="rounded px-6 py-2 text-sm font-medium text-white transition-all hover:shadow-md active:scale-[0.98]"
-          style={{ background: G.blue }}
-        >
-          Sign In
-        </button>
+        {!isLoaded ? (
+          <button
+            className="rounded px-6 py-2 text-sm font-medium text-[#202124] opacity-70"
+            disabled
+            style={{ background: G.blue }}
+            type="button"
+          >
+            Loading
+          </button>
+        ) : isSignedIn ? (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/feed")}
+              className="rounded px-6 py-2 text-sm font-medium text-[#202124] transition-all hover:shadow-md active:scale-[0.98]"
+              style={{ background: G.blue }}
+              type="button"
+            >
+              Open feed
+            </button>
+            <UserButton />
+          </div>
+        ) : (
+          <SignInButton mode="modal" forceRedirectUrl="/feed">
+            <button
+              className="rounded px-6 py-2 text-sm font-medium text-[#202124] transition-all hover:shadow-md active:scale-[0.98]"
+              style={{ background: G.blue }}
+              type="button"
+            >
+              Sign in
+            </button>
+          </SignInButton>
+        )}
       </div>
     </motion.header>
   );
@@ -177,6 +204,8 @@ function Clock() {
 }
 
 function LeftCopy() {
+  const navigate = useNavigate();
+  const { isLoaded, isSignedIn } = useAuth();
   return (
     <motion.div
       className="relative z-10 flex flex-col items-start pt-10 lg:pt-0"
@@ -216,12 +245,35 @@ function LeftCopy() {
         transition={{ duration: 0.7, ease }}
         className="mt-8 flex items-center gap-3"
       >
-        <button
-          className="flex h-11 items-center gap-2 rounded-xl px-6 text-[14px] font-medium text-[#202124] transition-all hover:shadow-lg active:scale-[0.98]"
-          style={{ background: G.blue, boxShadow: `0 4px 14px ${G.blue}60` }}
-        >
-          Start Exploring
-        </button>
+        {!isLoaded ? (
+          <button
+            className="flex h-11 items-center gap-2 rounded-xl px-6 text-[14px] font-medium text-[#202124] opacity-70"
+            disabled
+            style={{ background: G.blue, boxShadow: `0 4px 14px ${G.blue}60` }}
+            type="button"
+          >
+            Loading
+          </button>
+        ) : isSignedIn ? (
+          <button
+            className="flex h-11 items-center gap-2 rounded-xl px-6 text-[14px] font-medium text-[#202124] transition-all hover:shadow-lg active:scale-[0.98]"
+            onClick={() => navigate("/feed")}
+            style={{ background: G.blue, boxShadow: `0 4px 14px ${G.blue}60` }}
+            type="button"
+          >
+            Open your feed
+          </button>
+        ) : (
+          <SignInButton mode="modal" forceRedirectUrl="/feed">
+            <button
+              className="flex h-11 items-center gap-2 rounded-xl px-6 text-[14px] font-medium text-[#202124] transition-all hover:shadow-lg active:scale-[0.98]"
+              style={{ background: G.blue, boxShadow: `0 4px 14px ${G.blue}60` }}
+              type="button"
+            >
+              Start exploring
+            </button>
+          </SignInButton>
+        )}
         <button className="flex h-11 items-center gap-2 rounded-xl border border-[#dadce0] px-6 text-[14px] font-medium text-[#5f6368] transition-all hover:bg-[#f8f9fa] active:scale-[0.98]">
           Learn more
         </button>

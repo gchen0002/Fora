@@ -26,7 +26,15 @@ const sources = JSON.parse(await readFile(resolve(sourcesPath), "utf8"));
 const results = [];
 
 for (const source of expandSources(sources)) {
-  results.push(...(await runSourceAdapter(source)));
+  try {
+    results.push(...(await runSourceAdapter(source)));
+  } catch (error) {
+    console.warn(
+      `Skipped ${source.name ?? source.url}: ${
+        error instanceof Error ? error.message : "unknown source error"
+      }`,
+    );
+  }
 }
 
 const decisions = splitByDecision(results);
@@ -45,10 +53,15 @@ console.log(
 );
 
 if (shouldPush) {
-  await pushToIngestEndpoint(apiUrl, acceptedOpportunities, decisions.reviews);
+  await pushToIngestEndpoint(
+    apiUrl,
+    acceptedOpportunities,
+    decisions.reviews,
+    getReplaceSources(acceptedOpportunities),
+  );
 }
 
-async function pushToIngestEndpoint(url, opportunities, reviews) {
+async function pushToIngestEndpoint(url, opportunities, reviews, replaceSources) {
   const secret = process.env.ADMIN_INGEST_SECRET;
 
   if (!secret) {
@@ -61,7 +74,7 @@ async function pushToIngestEndpoint(url, opportunities, reviews) {
       "Content-Type": "application/json",
       "x-admin-ingest-secret": secret,
     },
-    body: JSON.stringify({ opportunities, reviews }),
+    body: JSON.stringify({ opportunities, reviews, replaceSources }),
   });
 
   if (!response.ok) {
@@ -97,4 +110,8 @@ async function writeJson(path, value) {
 function getArgValue(name) {
   const arg = process.argv.find((item) => item.startsWith(`${name}=`));
   return arg?.split("=").slice(1).join("=");
+}
+
+function getReplaceSources(opportunities) {
+  return [...new Set(opportunities.map((opportunity) => opportunity.source))];
 }
