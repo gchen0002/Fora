@@ -1,0 +1,11 @@
+[
+  {
+    "type": "submitted-links",
+    "name": "Example user-submitted links",
+    "source": "user-submitted",
+    "trustLevel": "untrusted",
+    "urls": [
+      "https://example.edu/events/example-tech-workshop"
+    ]
+  }
+]
