@@ -52,7 +52,7 @@ if (typeof document !== "undefined" && !document.getElementById(SPECTRUM_STYLE_I
       color: #202124;
       -webkit-text-fill-color: #202124;
     }
-    .fora-spectrum-btn-hero {
+    .fora-spectrum-btn-landing-hero {
       border: 1px solid rgba(255,255,255,0.72) !important;
       background: linear-gradient(
         100deg,
@@ -63,15 +63,15 @@ if (typeof document !== "undefined" && !document.getElementById(SPECTRUM_STYLE_I
       ) !important;
       box-shadow: 0 16px 42px rgba(178,201,171,0.28), 0 1px 0 rgba(255,255,255,0.9) inset;
     }
-    .fora-spectrum-btn-hero:hover {
+    .fora-spectrum-btn-landing-hero:hover {
       transform: translateY(-1px);
       box-shadow: 0 20px 52px rgba(205,180,219,0.3), 0 1px 0 rgba(255,255,255,0.9) inset !important;
     }
-    .fora-spectrum-btn-hero .spectrum-label {
+    .fora-spectrum-btn-landing-hero .spectrum-label {
       color: #202124;
       -webkit-text-fill-color: #202124;
     }
-    .fora-spectrum-btn-hero svg,
+    .fora-spectrum-btn-landing-hero svg,
     .fora-spectrum-btn-nav svg {
       color: #CDB4DB;
     }
@@ -274,6 +274,13 @@ function Nav() {
         ) : isSignedIn ? (
           <div className="flex items-center gap-3">
             <button
+              onClick={() => navigate("/onboarding")}
+              className="rounded-lg border border-[#dadce0] bg-white px-4 py-2 text-sm font-medium text-[#5f6368] transition-all hover:bg-[#f8f9fa] active:scale-[0.98]"
+              type="button"
+            >
+              Edit Response
+            </button>
+            <button
               onClick={() => navigate("/feed")}
               className="fora-spectrum-btn-nav rounded-lg bg-white px-6 py-2 text-sm font-semibold transition-all active:scale-[0.98]"
               type="button"
@@ -368,7 +375,7 @@ function LeftCopy() {
       >
         {!isLoaded ? (
           <button
-            className="fora-spectrum-btn-hero flex h-11 items-center gap-2 rounded-xl bg-white px-6 text-[15px] font-semibold opacity-70"
+            className="fora-spectrum-btn-landing-hero flex h-11 items-center gap-2 rounded-xl px-6 text-[15px] font-semibold opacity-70"
             disabled
             type="button"
           >
@@ -376,7 +383,7 @@ function LeftCopy() {
           </button>
         ) : isSignedIn ? (
           <button
-            className="fora-spectrum-btn-hero flex h-11 items-center gap-2 rounded-xl bg-white px-6 text-[15px] font-semibold transition-all active:scale-[0.98]"
+            className="fora-spectrum-btn-landing-hero flex h-11 items-center gap-2 rounded-xl px-6 text-[15px] font-semibold transition-all active:scale-[0.98]"
             onClick={() => navigate("/feed")}
             type="button"
           >
@@ -385,7 +392,7 @@ function LeftCopy() {
         ) : (
           <SignInButton mode="modal" forceRedirectUrl="/feed">
             <button
-              className="fora-spectrum-btn-hero flex h-11 items-center gap-2 rounded-xl bg-white px-6 text-[15px] font-semibold transition-all active:scale-[0.98]"
+              className="fora-spectrum-btn-landing-hero flex h-11 items-center gap-2 rounded-xl px-6 text-[15px] font-semibold transition-all active:scale-[0.98]"
               type="button"
             >
               <span className="spectrum-label">Start exploring</span>
