@@ -17,6 +17,7 @@
   "dependencies": {
     "@clerk/backend": "^3.4.9",
     "@clerk/react": "^6.6.4",
+    "@countrystatecity/countries": "^1.0.5",
     "@vitejs/plugin-react": "^5.0.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -4,13 +4,13 @@ import {
   Check,
   ChevronLeft,
   Loader2,
-  MapPin,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { fetchProfile, saveProfile, type UserProfile } from "@/api/profile";
+import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { geocodeKnownLocation } from "@/lib/geo";
 import { cn } from "@/lib/utils";
 
@@ -135,7 +135,7 @@ const mileageOptions = [10, 25, 50, 100];
 const initialProfile: UserProfile = {
   accessNeedTags: ["free", "beginner-friendly"],
   costSensitive: true,
-  displayName: "",
+  displayName: null,
   experienceLevel: "beginner-friendly",
   goalTags: ["hackathon", "scholarship"],
   identityTags: [],
@@ -143,7 +143,7 @@ const initialProfile: UserProfile = {
   latitude: null,
   locationText: "",
   longitude: null,
-  mileageRange: 25,
+  mileageRange: null,
   remotePreference: "remote",
 };
 
@@ -182,7 +182,6 @@ export function OnboardingScreen() {
           setProfile({
             ...initialProfile,
             ...response.profile,
-            displayName: response.profile.displayName ?? "",
             locationText: response.profile.locationText ?? "",
           });
         }
@@ -251,23 +250,6 @@ export function OnboardingScreen() {
         body: "A few final signals help Fora sort the first cards.",
         content: (
           <div className="space-y-6">
-            <label className="block">
-              <span className="text-xs font-bold uppercase tracking-[0.18em] text-[#5f6368]">
-                Display name
-              </span>
-              <input
-                className="mt-2 h-12 w-full rounded-xl border border-[#dadce0] bg-white px-4 text-sm font-medium text-[#202124] outline-none transition focus:border-[#CDB4DB] focus:ring-4 focus:ring-[#CDB4DB]/20"
-                onChange={(event) =>
-                  setProfile((current) => ({
-                    ...current,
-                    displayName: event.target.value,
-                  }))
-                }
-                placeholder={user?.firstName ?? "Your name"}
-                value={profile.displayName ?? ""}
-              />
-            </label>
-
             <div>
               <span className="text-xs font-bold uppercase tracking-[0.18em] text-[#5f6368]">
                 Experience
@@ -300,26 +282,25 @@ export function OnboardingScreen() {
               />
             </div>
 
-            <label className="block">
-              <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-[#5f6368]">
-                <MapPin className="h-3.5 w-3.5" />
-                Primary location
-              </span>
-              <input
-                className="mt-2 h-12 w-full rounded-xl border border-[#dadce0] bg-white px-4 text-sm font-medium text-[#202124] outline-none transition focus:border-[#CDB4DB] focus:ring-4 focus:ring-[#CDB4DB]/20"
-                onChange={(event) =>
-                  setProfile((current) => ({
-                    ...current,
-                    locationText: event.target.value,
-                  }))
-                }
-                placeholder="City, state or remote"
-                value={profile.locationText ?? ""}
-              />
-              <p className="mt-2 text-xs font-medium leading-5 text-[#5f6368]">
-                Used only to estimate miles away and sort nearby opportunities.
-              </p>
-            </label>
+            <LocationAutocomplete
+              value={profile.locationText ?? ""}
+              onChange={(text) =>
+                setProfile((current) => ({
+                  ...current,
+                  locationText: text,
+                  latitude: null,
+                  longitude: null,
+                }))
+              }
+              onPick={(location) =>
+                setProfile((current) => ({
+                  ...current,
+                  locationText: location.label,
+                  latitude: location.latitude,
+                  longitude: location.longitude,
+                }))
+              }
+            />
 
             <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
               <div>
@@ -335,7 +316,7 @@ export function OnboardingScreen() {
                       onClick={() =>
                         setProfile((current) => ({
                           ...current,
-                          mileageRange: value,
+                          mileageRange: current.mileageRange === value ? null : value,
                         }))
                       }
                     />
@@ -364,7 +345,7 @@ export function OnboardingScreen() {
         ),
       },
     ],
-    [profile, user?.firstName],
+    [profile],
   );
 
   function toggleList(key: keyof Pick<UserProfile, "accessNeedTags" | "goalTags" | "identityTags" | "interestTags">, value: string) {
@@ -391,17 +372,17 @@ export function OnboardingScreen() {
     try {
       const token = await getToken();
       if (!token) throw new Error("Sign in again to refresh your session.");
-      const coordinates = geocodeKnownLocation(profile.locationText);
+      const coordinates = await geocodeKnownLocation(profile.locationText);
 
       if (controller.signal.aborted) return;
 
       await saveProfile(token, {
         ...profile,
         costSensitive: profile.accessNeedTags.includes("free"),
-        displayName: profile.displayName || user?.firstName || null,
-        latitude: coordinates?.latitude ?? null,
+        displayName: user?.firstName || null,
+        latitude: profile.latitude ?? coordinates?.latitude ?? null,
         locationText: profile.locationText || null,
-        longitude: coordinates?.longitude ?? null,
+        longitude: profile.longitude ?? coordinates?.longitude ?? null,
       }, controller.signal);
 
       if (!controller.signal.aborted && isMountedRef.current) {
