@@ -38,42 +38,48 @@ if (typeof document !== "undefined" && !document.getElementById(SPECTRUM_STYLE_I
       animation: spectrumShift 4s ease infinite;
     }
     .fora-spectrum-btn-nav {
-      border: 1px solid rgba(255,255,255,0.72) !important;
-      background: linear-gradient(
-        100deg,
-        #CDB4DB 0%,
-        #FFB5A7 34%,
-        #F4F1DE 66%,
-        #B2C9AB 100%
-      ) !important;
-      box-shadow: 0 10px 28px rgba(205,180,219,0.32), 0 1px 0 rgba(255,255,255,0.85) inset;
+      border: 1.5px solid rgba(218,220,224,0.95) !important;
+      background: rgba(255,255,255,0.92) !important;
+      box-shadow: 0 10px 30px rgba(205,180,219,0.18), 0 1px 0 rgba(255,255,255,0.9) inset;
     }
     .fora-spectrum-btn-nav:hover {
       transform: translateY(-1px);
-      box-shadow: 0 14px 36px rgba(255,181,167,0.28), 0 1px 0 rgba(255,255,255,0.85) inset !important;
+      border-color: #B2C9AB !important;
+      box-shadow: 0 14px 36px rgba(178,201,171,0.28), 0 1px 0 rgba(255,255,255,0.95) inset !important;
     }
     .fora-spectrum-btn-nav .spectrum-label {
-      color: #202124;
-      -webkit-text-fill-color: #202124;
+      background: linear-gradient(
+        90deg,
+        #B2C9AB, #F4F1DE, #FFB5A7, #CDB4DB,
+        #B2C9AB, #F4F1DE, #FFB5A7, #CDB4DB
+      );
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: spectrumShiftReverse 6s ease infinite;
     }
     .fora-spectrum-btn-landing-hero {
-      border: 1px solid rgba(255,255,255,0.72) !important;
-      background: linear-gradient(
-        100deg,
-        #CDB4DB 0%,
-        #FFB5A7 34%,
-        #F4F1DE 66%,
-        #B2C9AB 100%
-      ) !important;
-      box-shadow: 0 16px 42px rgba(178,201,171,0.28), 0 1px 0 rgba(255,255,255,0.9) inset;
+      border: 1.5px solid rgba(255,255,255,0.9) !important;
+      background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%) !important;
+      box-shadow: 0 16px 42px rgba(205,180,219,0.22), 0 1px 0 rgba(255,255,255,0.95) inset;
     }
     .fora-spectrum-btn-landing-hero:hover {
       transform: translateY(-1px);
-      box-shadow: 0 20px 52px rgba(205,180,219,0.3), 0 1px 0 rgba(255,255,255,0.9) inset !important;
+      border-color: #CDB4DB !important;
+      box-shadow: 0 20px 52px rgba(255,181,167,0.24), 0 1px 0 rgba(255,255,255,0.95) inset !important;
     }
     .fora-spectrum-btn-landing-hero .spectrum-label {
-      color: #202124;
-      -webkit-text-fill-color: #202124;
+      background: linear-gradient(
+        90deg,
+        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB,
+        #CDB4DB, #FFB5A7, #F4F1DE, #B2C9AB
+      );
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: spectrumShift 5s ease infinite;
     }
     .fora-spectrum-btn-landing-hero svg,
     .fora-spectrum-btn-nav svg {

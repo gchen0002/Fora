@@ -5,6 +5,7 @@ import {
   CalendarDays,
   ChevronDown,
   Clock3,
+  SlidersHorizontal,
   MapPin,
   Sparkles,
   X,
@@ -581,7 +582,7 @@ function FeedShell({
         </button>
         <button
           aria-label="Open landing page"
-          className="flex items-center gap-[3px] rounded-full px-2 py-1 transition hover:bg-white/10"
+          className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-[3px] rounded-full px-2 py-1 transition hover:bg-white/10"
           onClick={() => navigateHome()}
           type="button"
         >
@@ -595,6 +596,15 @@ function FeedShell({
           <span className="hidden text-xs font-semibold text-white/70 sm:inline">
             Productive Scroll
           </span>
+          <button
+            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 text-[0.7rem] font-bold text-white/85 backdrop-blur-md transition hover:border-white/30 hover:bg-white/15 active:scale-[0.98] sm:h-9 sm:px-3.5 sm:text-xs"
+            onClick={() => window.location.assign("/onboarding")}
+            type="button"
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Edit responses</span>
+            <span className="sm:hidden">Edit</span>
+          </button>
           <UserButton />
         </div>
       </div>
